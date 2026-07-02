@@ -28,7 +28,7 @@ function getPracticeId() {
 }
 
 // ---- 2. Fetch that practice's config from Apps Script ----
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyW5sgcGa5aK9LWh_5bDVAq8aenM1Y4G2Cf5CmnPXb3TsVoDo8FQWLhrT-SgME0r5eh/exec";
 
 async function loadPracticeConfig() {
   const practiceId = getPracticeId();
