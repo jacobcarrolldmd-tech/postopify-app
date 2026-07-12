@@ -1,0 +1,147 @@
+<!--
+  Index.html — served by TemplateProvision.gs's doGet().
+  Same onboarding page hosts both the one-click folder setup AND (below)
+  the "how to use it" walkthrough video — one page, one process, per
+  Jacob's request. Swap the video src once the walkthrough is recorded.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    body {
+      font-family: 'Space Grotesk', Arial, sans-serif;
+      background: #0b2a3a; /* navy */
+      color: #fff;
+      max-width: 640px;
+      margin: 60px auto;
+      padding: 0 24px 60px;
+      text-align: center;
+    }
+    h1 { font-size: 28px; margin-bottom: 8px; }
+    h2 { font-size: 20px; }
+    p.sub { color: #9fd0c7; margin-bottom: 32px; }
+    input {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: none;
+      margin-bottom: 16px;
+      box-sizing: border-box;
+    }
+    button {
+      background: #1fae8e; /* teal */
+      color: #fff;
+      border: none;
+      padding: 14px 28px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:disabled { opacity: 0.6; cursor: default; }
+    #status { margin-top: 24px; min-height: 24px; }
+    #status a { color: #1fae8e; }
+    #video-section { margin-top: 56px; text-align: left; }
+    video { width: 100%; border-radius: 8px; margin-top: 12px; }
+    .lang-toggle {
+      display: inline-flex;
+      border: 1px solid #1fae8e;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .lang-toggle button {
+      padding: 6px 18px;
+      font-size: 14px;
+      border-radius: 0;
+      background: transparent;
+      color: #9fd0c7;
+    }
+    .lang-toggle button.active {
+      background: #1fae8e;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <h1>Set Up Your Postopify Templates</h1>
+  <p class="sub">
+    This creates a copy of the post-op instruction folder structure in your
+    own Google Drive, ready for your team to fill in with your practice's
+    instructions.
+  </p>
+
+  <input id="practiceName" type="text" placeholder="Practice name (e.g. Oregon Oral Surgery)" />
+  <br>
+  <button id="goBtn" onclick="runProvision()">Set Up My Templates</button>
+
+  <div id="status"></div>
+
+  <div id="video-section">
+    <h2>How to fill in your templates</h2>
+    <p>Watch this quick walkthrough before you start editing:</p>
+
+    <div class="lang-toggle">
+      <button id="langEnBtn" class="active" onclick="setVideoLang('en')">English</button>
+      <button id="langEsBtn" onclick="setVideoLang('es')">Español</button>
+    </div>
+
+    <!-- Replace these two URLs once the videos are hosted somewhere public -->
+    <video id="walkthroughVideo" controls poster="">
+      <source id="walkthroughSource" src="PASTE_EN_VIDEO_URL_HERE.mp4" type="video/mp4">
+      Your browser doesn't support embedded video —
+      <a id="walkthroughLink" href="PASTE_EN_VIDEO_URL_HERE">watch it here instead</a>.
+    </video>
+  </div>
+
+  <script>
+    const VIDEO_URLS = {
+      en: 'PASTE_EN_VIDEO_URL_HERE.mp4',
+      es: 'PASTE_ES_VIDEO_URL_HERE.mp4'
+    };
+
+    function setVideoLang(lang) {
+      const video = document.getElementById('walkthroughVideo');
+      const source = document.getElementById('walkthroughSource');
+      const link = document.getElementById('walkthroughLink');
+      const wasPlaying = !video.paused;
+
+      source.src = VIDEO_URLS[lang];
+      link.href = VIDEO_URLS[lang];
+      video.load();
+      if (wasPlaying) video.play();
+
+      document.getElementById('langEnBtn').classList.toggle('active', lang === 'en');
+      document.getElementById('langEsBtn').classList.toggle('active', lang === 'es');
+    }
+
+    function runProvision() {
+      const btn = document.getElementById('goBtn');
+      const status = document.getElementById('status');
+      const name = document.getElementById('practiceName').value.trim();
+
+      if (!name) {
+        status.textContent = 'Please enter your practice name first.';
+        return;
+      }
+
+      btn.disabled = true;
+      status.textContent = 'Setting up your folder — this takes a few seconds...';
+
+      google.script.run
+        .withSuccessHandler(function (result) {
+          status.innerHTML =
+            'Done! Your templates are ready: ' +
+            '<a href="' + result.folderUrl + '" target="_blank">Open in Google Drive</a>. ' +
+            "We'll be in touch to finish setting up your account.";
+        })
+        .withFailureHandler(function (err) {
+          btn.disabled = false;
+          status.textContent = 'Something went wrong: ' + err.message + '. Try again or email Jacob.';
+        })
+        .provisionTemplates(name);
+    }
+  </script>
+</body>
+</html>
