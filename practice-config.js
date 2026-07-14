@@ -102,7 +102,7 @@ async function initPractice() {
 initPractice();
 // ---- 6. Build and inject a dynamic per-practice manifest ----
 function applyDynamicManifest(config) {
-  const practiceId = config.practice_id;
+  const practiceId = config.practice_id.toLowerCase();
 
   const manifest = {
     name: config.clinic_name,
