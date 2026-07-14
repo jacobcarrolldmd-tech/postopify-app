@@ -70,6 +70,7 @@ function getFallbackConfig(practiceId) {
 // ---- 4. Apply the config to the page ----
 function applyPracticeBranding(config) {
   document.title = config.clinic_name;
+  applyDynamicManifest(config);
 
   document.documentElement.style.setProperty("--practice-primary-color", config.primary_color);
 
@@ -99,3 +100,41 @@ async function initPractice() {
 
 // Auto-run on load
 initPractice();
+// ---- 6. Build and inject a dynamic per-practice manifest ----
+function applyDynamicManifest(config) {
+  const practiceId = config.practice_id;
+
+  const manifest = {
+    name: config.clinic_name,
+    short_name: config.clinic_name.length > 20
+      ? config.clinic_name.substring(0, 20)
+      : config.clinic_name,
+    start_url: "/?practice=" + practiceId,
+    display: "standalone",
+    background_color: "#ffffff",
+    theme_color: config.primary_color || "#1D9E75",
+    icons: [
+      {
+        src: `icon-192-${practiceId}.png`,
+        sizes: "192x192",
+        type: "image/png"
+      },
+      {
+        src: `icon-512-${practiceId}.png`,
+        sizes: "512x512",
+        type: "image/png"
+      }
+    ]
+  };
+
+  const blob = new Blob([JSON.stringify(manifest)], { type: "application/json" });
+  const manifestUrl = URL.createObjectURL(blob);
+
+  let link = document.querySelector('link[rel="manifest"]');
+  if (!link) {
+    link = document.createElement('link');
+    link.rel = 'manifest';
+    document.head.appendChild(link);
+  }
+  link.href = manifestUrl;
+}
