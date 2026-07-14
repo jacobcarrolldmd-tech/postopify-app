@@ -1266,7 +1266,8 @@ function reloadForActiveProfile() {
   var notifBody = document.getElementById('notifBody');
   if (notifBody && notifBody.classList.contains('open')) updateNotifUI();
   applyLang();
-}
+    initReliabilityWizard();
+  }
 const DAYS = 6;
 const DOSES = 4;
 const SECTIONS = ["ibu","pain","abx"];
