@@ -1,0 +1,75 @@
+name: Stamp app version
+
+# Runs automatically whenever index.html changes on main. Generates a fresh
+# version string, writes it into version.txt, and updates the APP_VERSION
+# line inside index.html to match — so the two files can never drift apart
+# again, and nobody has to remember to bump either one by hand.
+#
+# The bot's own commit is tagged "[skip ci]", which GitHub Actions natively
+# treats as a signal to not trigger this workflow again for that push — so
+# this can't loop on itself. Vercel/GitHub Pages still deploy that commit
+# normally; [skip ci] only stops GitHub Actions, not your hosting.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+
+permissions:
+  contents: write
+
+jobs:
+  stamp-version:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Generate version string
+        id: version
+        run: |
+          DATESTR=$(date -u +'%-m-%-d-%Y')
+          SHORTSHA=$(git rev-parse --short HEAD)
+          echo "version=${DATESTR}-${SHORTSHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Write version.txt
+        run: echo "${{ steps.version.outputs.version }}" > version.txt
+
+      - name: Update APP_VERSION inside index.html
+        run: |
+          python3 - <<'PY'
+          import re
+
+          new_version = "${{ steps.version.outputs.version }}"
+
+          with open('index.html', encoding='utf-8') as f:
+              html = f.read()
+
+          updated, count = re.subn(
+              r"var APP_VERSION = '[^']*';",
+              f"var APP_VERSION = '{new_version}';",
+              html,
+              count=1
+          )
+
+          if count == 0:
+              raise SystemExit(
+                  "Could not find 'var APP_VERSION = ...;' in index.html — "
+                  "stopping without writing anything, so nothing silently breaks."
+              )
+
+          with open('index.html', 'w', encoding='utf-8') as f:
+              f.write(updated)
+          PY
+
+      - name: Commit updated version files
+        run: |
+          git config user.name "postopify-version-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add version.txt index.html
+          git diff --cached --quiet || git commit -m "chore: stamp version ${{ steps.version.outputs.version }} [skip ci]"
+          git push origin HEAD:${{ github.ref_name }}
