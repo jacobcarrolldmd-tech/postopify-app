@@ -99,6 +99,8 @@ body.help-mode .hs-card{overflow:visible;}
 #kickstartTelegramBanner .kt-text span{display:block;font-size:12px;opacity:.85;margin-top:2px;}
 #kickstartTelegramBanner .kt-connect{background:white;color:#1B3A6B;border:none;border-radius:8px;padding:10px 14px;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
 #kickstartTelegramBanner .kt-dismiss{background:none;border:none;color:white;font-size:20px;line-height:1;cursor:pointer;padding:4px 6px;flex-shrink:0;opacity:.8;}
+#kickstartTelegramBanner .kt-store-line{display:block;font-size:11px;margin-top:4px;opacity:.85;}
+#kickstartTelegramBanner .kt-store-link{color:#fff;text-decoration:underline;font-weight:700;}
 
 .disc-lang-toggle{display:flex;justify-content:center;gap:8px;margin-bottom:14px;}
 .disc-lang-btn{border-radius:20px;padding:8px 16px;font-size:13px;border:1.5px solid var(--border);background:#f4f6f9;color:var(--gray);}
@@ -451,6 +453,12 @@ function continueClick() {
   <div class="kt-text">
     <strong>&#128241; Set up Telegram reminders now</strong>
     <span>Recommended &mdash; works even if your phone is locked.</span>
+    <span class="kt-store-line">
+      <span data-i18n="dontHaveTelegram">Don&rsquo;t have Telegram installed?</span>
+      <a href="https://telegram.org/apps" target="_blank" rel="noopener" id="kickstartTelegramStoreLink" class="kt-store-link">
+        <span id="kickstartTelegramStoreLinkText" data-i18n="getTelegramOther">Get Telegram</span>
+      </a>
+    </span>
   </div>
   <button type="button" class="kt-connect" onclick="handleKickstartTelegramTap()">Connect Telegram</button>
   <button type="button" class="kt-dismiss" onclick="dismissKickstartTelegramBanner()" aria-label="Dismiss">&times;</button>
@@ -1721,6 +1729,7 @@ function applyKickstartParams() {
 function showKickstartTelegramBanner() {
   var el = document.getElementById('kickstartTelegramBanner');
   if (el) el.classList.add('visible');
+  updateTelegramStoreLink();
 }
 
 function dismissKickstartTelegramBanner() {
@@ -2490,7 +2499,7 @@ applyHelpModeUI();
 // Bump the trailing number for a same-day update, or start a new date at
 // -1 for the next day. Must match version.txt on the server exactly, or
 // every tab will think an update is available.
-var APP_VERSION = '7-21-2026-a8e98d7';
+var APP_VERSION = '7-19-2026-1';
 (function(){ var f = document.getElementById('appVersionFooter'); if (f) f.textContent = 'Updated: ' + APP_VERSION; })();
 
 function checkForAppUpdate() {
@@ -2864,8 +2873,13 @@ function enableTelegramReminders() {
 // "did the t.me link actually open the app" — that kind of custom-scheme
 // timing hack is unreliable across mobile browsers and inside PWAs.
 function updateTelegramStoreLink() {
-  var a = document.getElementById('telegramStoreLink');
-  var label = document.getElementById('telegramStoreLinkText');
+  applyStoreLinkTo('telegramStoreLink', 'telegramStoreLinkText');
+  applyStoreLinkTo('kickstartTelegramStoreLink', 'kickstartTelegramStoreLinkText');
+}
+
+function applyStoreLinkTo(linkId, labelId) {
+  var a = document.getElementById(linkId);
+  var label = document.getElementById(labelId);
   if (!a || !label) return;
   if (isIphone()) {
     a.href = 'https://apps.apple.com/app/telegram-messenger/id686449807';
