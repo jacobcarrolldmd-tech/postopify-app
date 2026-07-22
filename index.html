@@ -138,6 +138,9 @@ body.help-mode .hs-card{overflow:visible;}
 .day-tab.has-data{border-color:var(--teal);color:var(--teal);}
 .day-tab.active.has-data{background:var(--teal);border-color:var(--teal);color:white;}
 .select-label{font-size:12px;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+  .rx-check-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px;font-weight:600;cursor:pointer;}
+  .rx-check-row:last-child{border-bottom:none;}
+  .rx-check-row input[type="checkbox"]{width:20px;height:20px;flex-shrink:0;accent-color:var(--navy);}
 /* ── Post-Op Instructions ── */
 .proc-list{display:flex;flex-direction:column;gap:9px;margin-top:4px;}
 .proc-btn{display:flex;align-items:center;gap:11px;width:100%;padding:14px;border-radius:10px;border:2px solid var(--border);background:white;font-family:inherit;font-size:14px;font-weight:600;color:var(--navy);cursor:pointer;text-align:left;transition:all .15s;}
@@ -757,7 +760,25 @@ function continueClick() {
       </div>
     </div>
   </div>
-  <div class="card">
+  <div class="card" id="rxChecklistCard">
+    <div class="card-header navy">
+      <div class="card-header-icon">&#128203;</div>
+      <div>
+        <div class="card-header-title" data-i18n="rxChecklistTitle">What is the patient prescribed?</div>
+        <div class="card-header-sub" data-i18n="rxChecklistSub">Check everything that applies &mdash; those sections move to the top; the rest stay out of the way below</div>
+      </div>
+    </div>
+    <div class="card-body" id="rxChecklistBody">
+      <label class="rx-check-row"><input type="checkbox" id="rx_ibu" onchange="onMasterRxToggle('ibu')"><span data-i18n="antiInflamTitle">Anti-Inflammatory</span></label>
+      <label class="rx-check-row"><input type="checkbox" id="rx_pain" onchange="onMasterRxToggle('pain')"><span data-i18n="painMedTitle">Pain Medication</span></label>
+      <label class="rx-check-row"><input type="checkbox" id="rx_abx" onchange="onMasterRxToggle('abx')"><span data-i18n="antibioticTitle">Antibiotic</span></label>
+      <label class="rx-check-row"><input type="checkbox" id="rx_tylenol" onchange="onMasterRxToggle('tylenol')"><span data-i18n="tylenolTitle">Tylenol</span></label>
+      <label class="rx-check-row"><input type="checkbox" id="rx_steroid" onchange="onMasterRxToggle('steroid')"><span data-i18n="steroidChecklistLabel">Steroid</span></label>
+      <label class="rx-check-row"><input type="checkbox" id="rx_journavx" onchange="onMasterRxToggle('journavx')"><span data-i18n="journavxTitle">Journavx</span></label>
+    </div>
+  </div>
+
+  <div class="card" id="ibuCard">
     <div class="card-header teal">
       <div class="card-header-icon">&#129138;</div>
       <div>
@@ -778,51 +799,7 @@ function continueClick() {
       </div>
     </div>
   </div>
-  <div class="card" id="journavxCard">
-    <div class="card-header" style="background:#be185d;">
-      <div class="card-header-icon">&#128137;</div>
-      <div>
-        <div class="card-header-title" data-i18n="journavxTitle">Journavx</div>
-        <div class="card-header-sub" data-i18n="journavxSub">Can be taken along with your other pain medications</div>
-      </div>
-    </div>
-    <div class="card-body">
-      <div class="alarm-row" style="border-bottom:none;">
-        <div class="select-label" style="margin:0;" data-i18n="journavxPrescribedLabel">Was Journavx prescribed?</div>
-        <label class="alarm-toggle"><input type="checkbox" id="journavxPrescribedToggle" onchange="onJournavxPrescribedToggle()"><span class="alarm-slider"></span></label>
-      </div>
-      <div id="journavxDetail" style="display:none;">
-        <div class="warning-box green-box" data-i18n-html="journavxDoseInfo">First dose: 2 tablets (100 mg) on an empty stomach. After that: 50 mg every 12 hours while you have pain. If you miss more than two doses in a row, the next dose goes back to the starting 2-tablet (100 mg) dose.</div>
-        <div id="journavxNextDoseBox" class="warning-box" style="display:none;"></div>
-        <div id="journavxSchedule" class="schedule-preview" data-help-key="doseSchedulePreview"></div>
-        <div class="dose-list" id="journavxDoses" style="margin-top:14px;"></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card" id="tylenolCard">
-    <div class="card-header" style="background:#0369a1;">
-      <div class="card-header-icon">&#128138;</div>
-      <div>
-        <div class="card-header-title" data-i18n="tylenolTitle">Tylenol</div>
-        <div class="card-header-sub" data-i18n="tylenolSub">Acetaminophen &mdash; Can be taken along with your other pain medications</div>
-      </div>
-    </div>
-    <div class="card-body">
-      <div class="alarm-row" style="border-bottom:none;">
-        <div class="select-label" style="margin:0;" data-i18n="tylenolPrescribedLabel">Is the patient taking Tylenol?</div>
-        <label class="alarm-toggle"><input type="checkbox" id="tylenolPrescribedToggle" onchange="onTylenolPrescribedToggle()"><span class="alarm-slider"></span></label>
-      </div>
-      <div id="tylenolDetail" style="display:none;">
-        <div class="select-label" data-i18n="tylenolFrequencyLabel">How often is it taken?</div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;" id="tylenolFrequencyBtns"></div>
-        <div id="tylenolSchedule" class="schedule-preview" data-help-key="doseSchedulePreview"></div>
-        <div class="dose-list" id="tylenolDoses" style="margin-top:14px;"></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
+  <div class="card" id="painCard">
     <div class="card-header orange">
       <div class="card-header-icon">&#128308;</div>
       <div>
@@ -850,7 +827,7 @@ function continueClick() {
       </div>
     </div>
   </div>
-  <div class="card">
+  <div class="card" id="abxCard">
     <div class="card-header green">
       <div class="card-header-icon">&#128994;</div>
       <div>
@@ -889,6 +866,28 @@ function continueClick() {
       </div>
     </div>
   </div>
+  <div class="card" id="tylenolCard">
+    <div class="card-header" style="background:#0369a1;">
+      <div class="card-header-icon">&#128138;</div>
+      <div>
+        <div class="card-header-title" data-i18n="tylenolTitle">Tylenol</div>
+        <div class="card-header-sub" data-i18n="tylenolSub">Acetaminophen &mdash; Can be taken along with your other pain medications</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="alarm-row" style="border-bottom:none;">
+        <div class="select-label" style="margin:0;" data-i18n="tylenolPrescribedLabel">Is the patient taking Tylenol?</div>
+        <label class="alarm-toggle"><input type="checkbox" id="tylenolPrescribedToggle" onchange="onTylenolPrescribedToggle()"><span class="alarm-slider"></span></label>
+      </div>
+      <div id="tylenolDetail" style="display:none;">
+        <div class="select-label" data-i18n="tylenolFrequencyLabel">How often is it taken?</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;" id="tylenolFrequencyBtns"></div>
+        <div id="tylenolSchedule" class="schedule-preview" data-help-key="doseSchedulePreview"></div>
+        <div class="dose-list" id="tylenolDoses" style="margin-top:14px;"></div>
+      </div>
+    </div>
+  </div>
+
   <div class="card" id="steroidCard">
     <div class="card-header" style="background:#6b46c1;">
       <div class="card-header-icon">&#128137;</div>
@@ -898,6 +897,11 @@ function continueClick() {
       </div>
     </div>
     <div class="card-body">
+      <div class="alarm-row" style="border-bottom:none;">
+        <div class="select-label" style="margin:0;" data-i18n="steroidPrescribedLabel">Was a steroid prescribed?</div>
+        <label class="alarm-toggle"><input type="checkbox" id="steroidPrescribedToggle" onchange="onSteroidPrescribedToggle()"><span class="alarm-slider"></span></label>
+      </div>
+      <div id="steroidDetail" style="display:none;">
       <div class="select-label" data-i18n="whichWasPrescribed">Which was prescribed?</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;" id="steroidTypeBtns" data-help-key="steroidTypeBtns"></div>
       <!-- Medrol info (shown only if selected) -->
@@ -915,8 +919,33 @@ function continueClick() {
       <div class="warning-box" style="margin-top:10px;" id="steroidWarning" data-i18n-html="steroidWarningTxt">&#9888;&#65039; Do <strong>NOT</strong> stop a steroid taper early or skip days &mdash; stopping abruptly can be unsafe. Call our office with questions about your dose.</div>
       <div id="steroidSchedule" class="schedule-preview" data-help-key="doseSchedulePreview"></div>
       <div class="dose-list" id="steroidDoses" style="margin-top:14px;"></div>
+      </div>
     </div>
   </div>
+  <div class="card" id="journavxCard">
+    <div class="card-header" style="background:#be185d;">
+      <div class="card-header-icon">&#128137;</div>
+      <div>
+        <div class="card-header-title" data-i18n="journavxTitle">Journavx</div>
+        <div class="card-header-sub" data-i18n="journavxSub">Can be taken along with your other pain medications</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="alarm-row" style="border-bottom:none;">
+        <div class="select-label" style="margin:0;" data-i18n="journavxPrescribedLabel">Was Journavx prescribed?</div>
+        <label class="alarm-toggle"><input type="checkbox" id="journavxPrescribedToggle" onchange="onJournavxPrescribedToggle()"><span class="alarm-slider"></span></label>
+      </div>
+      <div id="journavxDetail" style="display:none;">
+        <div class="warning-box green-box" data-i18n-html="journavxDoseInfo">First dose: 2 tablets (100 mg) on an empty stomach. After that: 50 mg every 12 hours while you have pain. If you miss more than two doses in a row, the next dose goes back to the starting 2-tablet (100 mg) dose.</div>
+        <div id="journavxNextDoseBox" class="warning-box" style="display:none;"></div>
+        <div id="journavxSchedule" class="schedule-preview" data-help-key="doseSchedulePreview"></div>
+        <div class="dose-list" id="journavxDoses" style="margin-top:14px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="medCardsAnchor"></div>
+
   <!-- MedlinePlus Resource -->
   <div class="medline-card">
     <a class="medline-link" href="https://medlineplus.gov/" target="_blank" rel="noopener noreferrer">
@@ -1186,6 +1215,10 @@ var LANG = {
     ibuPrescribedLabel: "Is the patient taking Ibuprofen?",
     painPrescribedLabel: "Is the patient taking pain medication?",
     abxPrescribedLabel: "Is the patient taking an antibiotic?",
+    rxChecklistTitle: "What is the patient prescribed?",
+    rxChecklistSub: "Check everything that applies \u2014 those sections move to the top; the rest stay out of the way below",
+    steroidChecklistLabel: "Steroid",
+    steroidPrescribedLabel: "Was a steroid prescribed?",
     ibuFirstDoseTemplate: 'First dose time today<small>Schedules {doses} doses every {hrs} hours</small>',
     painMedTitle: "Pain Medication",
     painMedSub: "Take ONLY as needed \u2014 Do NOT drive",
@@ -1418,6 +1451,10 @@ var LANG = {
     ibuPrescribedLabel: "\u00BFEl paciente est\u00E1 tomando Ibuprofeno?",
     painPrescribedLabel: "\u00BFEl paciente est\u00E1 tomando medicamento para el dolor?",
     abxPrescribedLabel: "\u00BFEl paciente est\u00E1 tomando un antibi\u00F3tico?",
+    rxChecklistTitle: "\u00BFQu\u00E9 se le recet\u00F3 al paciente?",
+    rxChecklistSub: "Marque todo lo que corresponda \u2014 esas secciones suben arriba; el resto queda compactado abajo",
+    steroidChecklistLabel: "Esteroide",
+    steroidPrescribedLabel: "\u00BFSe recet\u00F3 un esteroide?",
     ibuFirstDoseTemplate: 'Hora de la primera dosis hoy<small>Programa {doses} dosis cada {hrs} horas</small>',
     painMedTitle: "Medicamento para el Dolor",
     painMedSub: "Tomar SOLO cuando sea necesario \u2014 NO conducir",
@@ -1647,6 +1684,9 @@ function applyLang() {
   updateTylenolUI();
   updatePainToggleUI();
   updateAbxToggleUI();
+  updateSteroidToggleUI();
+  syncRxChecklist();
+  reorderMedicationCards();
   if (typeof onAbxSelect === 'function' && document.getElementById('abxSelect').value) onAbxSelect();
   if (typeof renderAll === 'function') renderAll();
   if (typeof updateNotifUI === 'function') {
@@ -1747,6 +1787,9 @@ function reloadForActiveProfile() {
   updateTylenolUI();
   updatePainToggleUI();
   updateAbxToggleUI();
+  updateSteroidToggleUI();
+  syncRxChecklist();
+  reorderMedicationCards();
   if (state.abxMed) onAbxSelect(); else renderAll();
   var notifBody = document.getElementById('notifBody');
   if (notifBody && notifBody.classList.contains('open')) { updateNotifUI(); updateTelegramUI(); }
@@ -1767,7 +1810,7 @@ let currentDay = 0;
 function defaultState() {
   return {
     painMed:"", abxMed:"", abxDoses:2,
-    steroidType:"", dexDuration:0, ibuIntervalHrs:6, ibuPrescribed:true, journavxPrescribed:false, tylenolPrescribed:false, tylenolIntervalHrs:6, painPrescribed:false, abxPrescribed:false,
+    steroidType:"", dexDuration:0, ibuIntervalHrs:6, ibuPrescribed:true, journavxPrescribed:false, tylenolPrescribed:false, tylenolIntervalHrs:6, painPrescribed:false, abxPrescribed:false, steroidPrescribed:false,
     ibu:  Array.from({length:DAYS}, () => Array.from({length:DOSES}, () => ({taken:false,time:""}))),
     journavx: Array.from({length:DAYS}, () => Array.from({length:JOURNAVX_DOSES_PER_DAY}, () => ({taken:false,time:""}))),
     tylenol: Array.from({length:DAYS}, () => Array.from({length:TYLENOL_MAX_DOSES}, () => ({taken:false,time:""}))),
@@ -1786,6 +1829,7 @@ function normalizeState(s) {
   if (typeof s.ibuPrescribed === 'undefined') s.ibuPrescribed = true;
   if (typeof s.painPrescribed === 'undefined') s.painPrescribed = !!s.painMed;
   if (typeof s.abxPrescribed === 'undefined') s.abxPrescribed = !!s.abxMed;
+  if (typeof s.steroidPrescribed === 'undefined') s.steroidPrescribed = !!s.steroidType;
   if (typeof s.journavxPrescribed === 'undefined') s.journavxPrescribed = false;
   if (!s.journavx) {
     s.journavx = Array.from({length:DAYS}, () => Array.from({length:JOURNAVX_DOSES_PER_DAY}, () => ({taken:false,time:""})));
@@ -1803,6 +1847,7 @@ function normalizeState(s) {
 // How many steroid doses apply on a given day, based on which type (if any)
 // is selected. Returns 0 if no steroid was prescribed/selected.
 function steroidDosesForDay(day) {
+  if (!state.steroidPrescribed) return 0;
   if (state.steroidType === 'medrol') return MEDROL_SCHEDULE[day] || 0;
   if (state.steroidType === 'dex')    return day < (state.dexDuration || 0) ? 1 : 0;
   return 0;
@@ -1902,6 +1947,8 @@ function onJournavxPrescribedToggle() {
   state.journavxPrescribed = document.getElementById('journavxPrescribedToggle').checked;
   saveState();
   updateJournavxUI();
+  syncRxChecklist();
+  reorderMedicationCards();
   renderAll();
 }
 
@@ -1948,6 +1995,8 @@ function onTylenolPrescribedToggle() {
   state.tylenolPrescribed = document.getElementById('tylenolPrescribedToggle').checked;
   saveState();
   updateTylenolUI();
+  syncRxChecklist();
+  reorderMedicationCards();
   renderAll();
 }
 
@@ -2013,6 +2062,8 @@ function onIbuPrescribedToggle() {
   state.ibuPrescribed = document.getElementById('ibuPrescribedToggle').checked;
   saveState();
   updateIbuUI();
+  syncRxChecklist();
+  reorderMedicationCards();
   renderAll();
 }
 
@@ -2020,6 +2071,8 @@ function onPainPrescribedToggle() {
   state.painPrescribed = document.getElementById('painPrescribedToggle').checked;
   saveState();
   updatePainToggleUI();
+  syncRxChecklist();
+  reorderMedicationCards();
   renderAll();
 }
 function updatePainToggleUI() {
@@ -2033,6 +2086,8 @@ function onAbxPrescribedToggle() {
   state.abxPrescribed = document.getElementById('abxPrescribedToggle').checked;
   saveState();
   updateAbxToggleUI();
+  syncRxChecklist();
+  reorderMedicationCards();
   renderAll();
 }
 function updateAbxToggleUI() {
@@ -2041,6 +2096,78 @@ function updateAbxToggleUI() {
   var detail = document.getElementById('abxDetail');
   if (detail) detail.style.display = state.abxPrescribed ? 'block' : 'none';
 }
+
+function onSteroidPrescribedToggle() {
+  state.steroidPrescribed = document.getElementById('steroidPrescribedToggle').checked;
+  saveState();
+  updateSteroidToggleUI();
+  syncRxChecklist();
+  reorderMedicationCards();
+  renderAll();
+}
+function updateSteroidToggleUI() {
+  var toggle = document.getElementById('steroidPrescribedToggle');
+  if (toggle) toggle.checked = !!state.steroidPrescribed;
+  var detail = document.getElementById('steroidDetail');
+  if (detail) detail.style.display = state.steroidPrescribed ? 'block' : 'none';
+}
+
+// Master "What is the patient prescribed?" checklist - a second, synced
+// view onto the exact same underlying flags each card's own toggle
+// already reads/writes. Checking a box here just flips that flag and
+// reuses each card's own update function, so there's only ever one
+// source of truth (state.*Prescribed), never two.
+var RX_KEYS = ['ibu', 'pain', 'abx', 'tylenol', 'steroid', 'journavx'];
+var RX_STATE_FIELD = { ibu:'ibuPrescribed', pain:'painPrescribed', abx:'abxPrescribed', tylenol:'tylenolPrescribed', steroid:'steroidPrescribed', journavx:'journavxPrescribed' };
+var RX_UPDATE_FN = { ibu:updateIbuUIRef, pain:updatePainToggleUIRef, abx:updateAbxToggleUIRef, tylenol:updateTylenolUIRef, steroid:updateSteroidToggleUIRef, journavx:updateJournavxUIRef };
+
+// Indirection so these can be declared before the functions they wrap
+// exist in source order (all are defined above by the time this runs).
+function updateIbuUIRef()          { updateIbuUI(); }
+function updatePainToggleUIRef()   { updatePainToggleUI(); }
+function updateAbxToggleUIRef()    { updateAbxToggleUI(); }
+function updateTylenolUIRef()      { updateTylenolUI(); }
+function updateSteroidToggleUIRef(){ updateSteroidToggleUI(); }
+function updateJournavxUIRef()     { updateJournavxUI(); }
+
+function onMasterRxToggle(key) {
+  var box = document.getElementById('rx_' + key);
+  if (!box) return;
+  state[RX_STATE_FIELD[key]] = box.checked;
+  saveState();
+  RX_UPDATE_FN[key]();
+  reorderMedicationCards();
+  renderAll();
+}
+
+function syncRxChecklist() {
+  RX_KEYS.forEach(function(key) {
+    var box = document.getElementById('rx_' + key);
+    if (box) box.checked = !!state[RX_STATE_FIELD[key]];
+  });
+}
+
+var MED_CARD_ORDER = ['ibuCard', 'painCard', 'abxCard', 'tylenolCard', 'steroidCard', 'journavxCard'];
+var MED_CARD_KEY = { ibuCard:'ibu', painCard:'pain', abxCard:'abx', tylenolCard:'tylenol', steroidCard:'steroid', journavxCard:'journavx' };
+
+// Moves the checked/active cards to the top (in their canonical order) and
+// the unchecked ones after them (also canonical order, and already
+// visually compressed to just their header since each card's own toggle
+// hides its detail div when off). Uses insertBefore against a fixed
+// end-of-section marker so this never touches anything outside the
+// medication-cards block (Post-Op Instructions above, MedlinePlus/Save to
+// Home Screen below stay exactly where they are).
+function reorderMedicationCards() {
+  var anchor = document.getElementById('medCardsAnchor');
+  if (!anchor || !anchor.parentNode) return;
+  var active = MED_CARD_ORDER.filter(function(id) { return !!state[RX_STATE_FIELD[MED_CARD_KEY[id]]]; });
+  var inactive = MED_CARD_ORDER.filter(function(id) { return !state[RX_STATE_FIELD[MED_CARD_KEY[id]]]; });
+  active.concat(inactive).forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) anchor.parentNode.insertBefore(el, anchor);
+  });
+}
+
 
 
 function loadState() {
@@ -3119,6 +3246,9 @@ updateJournavxUI();
 updateTylenolUI();
 updatePainToggleUI();
 updateAbxToggleUI();
+updateSteroidToggleUI();
+syncRxChecklist();
+reorderMedicationCards();
 if (state.abxMed) onAbxSelect();
 else renderAll();
 applyLang();
@@ -3128,7 +3258,7 @@ applyHelpModeUI();
 // Bump the trailing number for a same-day update, or start a new date at
 // -1 for the next day. Must match version.txt on the server exactly, or
 // every tab will think an update is available.
-var APP_VERSION = '7-22-2026-01f0d7a';
+var APP_VERSION = '7-22-2026-40b34fb';
 (function(){ var f = document.getElementById('appVersionFooter'); if (f) f.textContent = 'Updated: ' + APP_VERSION; })();
 
 function checkForAppUpdate() {
