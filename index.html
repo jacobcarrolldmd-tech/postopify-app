@@ -102,6 +102,18 @@ body.help-mode .hs-card{overflow:visible;}
 #kickstartTelegramBanner .kt-store-line{display:block;font-size:11px;margin-top:4px;opacity:.85;}
 #kickstartTelegramBanner .kt-store-link{color:#fff;text-decoration:underline;font-weight:700;}
 
+/* Per-visit welcome message set by front-desk staff via Office Kickstart.
+   Deliberately NOT sticky (unlike the Telegram banner) - it's a one-time
+   greeting, not a persistent call-to-action, so it's fine for it to
+   scroll away with the rest of the page. */
+#kickstartWelcomeBanner{display:none;align-items:center;gap:10px;background:linear-gradient(135deg,#c0631f,#8a3b12);color:#fff;padding:12px 16px;}
+#kickstartWelcomeBanner.visible{display:flex;}
+#kickstartWelcomeBanner .kw-text{flex:1;min-width:0;font-size:14px;font-weight:600;line-height:1.4;word-break:break-word;}
+#kickstartWelcomeBanner.minimized{padding:6px 16px;}
+#kickstartWelcomeBanner.minimized .kw-text{font-size:12px;font-weight:500;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#kickstartWelcomeBanner .kw-toggle{background:none;border:none;color:#fff;font-size:16px;line-height:1;cursor:pointer;padding:6px 8px;opacity:.85;flex-shrink:0;border-radius:6px;}
+#kickstartWelcomeBanner .kw-toggle:active{background:rgba(255,255,255,.2);}
+
 .disc-lang-toggle{display:flex;justify-content:center;gap:8px;margin-bottom:14px;}
 .disc-lang-btn{border-radius:20px;padding:8px 16px;font-size:13px;border:1.5px solid var(--border);background:#f4f6f9;color:var(--gray);}
 .disc-lang-btn.active{background:#1B3A6B;color:white;border-color:#1B3A6B;}
@@ -452,6 +464,11 @@ function continueClick() {
   </div>
 </div>
 <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
+
+<div id="kickstartWelcomeBanner">
+  <div class="kw-text" id="kickstartWelcomeText"></div>
+  <button type="button" class="kw-toggle" id="kickstartWelcomeToggle" onclick="toggleWelcomeBanner()" aria-label="Minimize message">&#8722;</button>
+</div>
 
 <div id="kickstartTelegramBanner">
   <div class="kt-text">
@@ -1001,6 +1018,8 @@ var LANG = {
     postopApptLabel: "Post-Op Appointment",
     alsoNeededPrefix: "You may also need:",
     alsoNeededViewBtn: "View",
+    welcomeBannerMinimizeAria: "Minimize message",
+    welcomeBannerExpandAria: "Show message",
     postopApptNote: "Adds just the date and time to your calendar \u2014 no names or details included. You can add your own title once it's there.",
     addToGoogleCalendarBtn: "\uD83D\uDCC5 Google Calendar",
     addToIcsCalendarBtn: "\uD83D\uDCC5 Apple / Outlook",
@@ -1204,6 +1223,8 @@ var LANG = {
     postopApptLabel: "Cita Post-Operatoria",
     alsoNeededPrefix: "Tambi\u00E9n podr\u00EDa necesitar:",
     alsoNeededViewBtn: "Ver",
+    welcomeBannerMinimizeAria: "Minimizar mensaje",
+    welcomeBannerExpandAria: "Mostrar mensaje",
     postopApptNote: "Agrega solo la fecha y hora a su calendario \u2014 sin nombres ni detalles. Puede agregar su propio t\u00EDtulo una vez que est\u00E9 ah\u00ED.",
     addToGoogleCalendarBtn: "\uD83D\uDCC5 Google Calendar",
     addToIcsCalendarBtn: "\uD83D\uDCC5 Apple / Outlook",
@@ -1581,6 +1602,7 @@ function reloadForActiveProfile() {
   loadPatientInfo();
   loadSurgeryDate();
   loadPostopAppt();
+  renderWelcomeBanner();
   syncDayTabToSurgeryDate();
   updateSteroidUI();
   if (state.abxMed) onAbxSelect(); else renderAll();
@@ -1698,7 +1720,8 @@ function applyKickstartParams() {
   var telegramFlag = params.get('telegram');
   var apptDate = params.get('apptDate');
   var apptTime = params.get('apptTime');
-  if (!surgDate && !procName && !procName2 && !ketoTime && !telegramFlag && !apptDate) return;
+  var welcomeMsg = params.get('msg');
+  if (!surgDate && !procName && !procName2 && !ketoTime && !telegramFlag && !apptDate && !welcomeMsg) return;
 
   if (surgDate && /^\d{4}-\d{2}-\d{2}$/.test(surgDate)) {
     try { localStorage.setItem(pk('postopify_surgery_date'), surgDate); } catch(e) {}
@@ -1737,6 +1760,20 @@ function applyKickstartParams() {
     showKickstartTelegramBanner();
   }
 
+  // A fresh kickstart link always represents a new patient visit, so a new
+  // message should never stay hidden behind a PRIOR patient's minimized
+  // state. Clearing the minimized flag whenever a new msg param arrives
+  // (even if the text happens to repeat) is the safer default.
+  if (welcomeMsg) {
+    var trimmedMsg = welcomeMsg.trim().slice(0, 200);
+    if (trimmedMsg) {
+      try {
+        localStorage.setItem(pk('postopify_welcome_msg'), trimmedMsg);
+        localStorage.removeItem(pk('postopify_welcome_msg_minimized'));
+      } catch(e) {}
+    }
+  }
+
   // Clear the params from the address bar once applied, so a refresh or a
   // re-shared link doesn't re-apply (or re-mark) anything.
   try {
@@ -1758,6 +1795,44 @@ function dismissKickstartTelegramBanner() {
 function handleKickstartTelegramTap() {
   enableTelegramReminders();
   dismissKickstartTelegramBanner();
+}
+
+// Per-visit welcome banner (set via Office Kickstart's `msg` param). Display
+// -only - the patient can never edit or dismiss the text itself, only
+// minimize/expand it. Minimized state persists per-profile so it stays
+// collapsed across reloads once a parent tucks it away, but a fresh
+// kickstart link (new visit) always clears that flag - see
+// applyKickstartParams() above.
+function renderWelcomeBanner() {
+  var el = document.getElementById('kickstartWelcomeBanner');
+  var textEl = document.getElementById('kickstartWelcomeText');
+  var toggleBtn = document.getElementById('kickstartWelcomeToggle');
+  if (!el || !textEl || !toggleBtn) return;
+
+  var msg;
+  try { msg = localStorage.getItem(pk('postopify_welcome_msg')); } catch(e) { msg = null; }
+
+  if (!msg) {
+    el.classList.remove('visible', 'minimized');
+    return;
+  }
+
+  var minimized;
+  try { minimized = localStorage.getItem(pk('postopify_welcome_msg_minimized')) === '1'; } catch(e) { minimized = false; }
+
+  textEl.textContent = msg;
+  el.classList.add('visible');
+  el.classList.toggle('minimized', minimized);
+  toggleBtn.innerHTML = minimized ? '&#43;' : '&#8722;';
+  toggleBtn.setAttribute('aria-label', t(minimized ? 'welcomeBannerExpandAria' : 'welcomeBannerMinimizeAria'));
+}
+
+function toggleWelcomeBanner() {
+  var el = document.getElementById('kickstartWelcomeBanner');
+  if (!el) return;
+  var minimized = !el.classList.contains('minimized');
+  try { localStorage.setItem(pk('postopify_welcome_msg_minimized'), minimized ? '1' : '0'); } catch(e) {}
+  renderWelcomeBanner();
 }
 
 // Procedures load asynchronously from Google Drive, so this runs once the
@@ -1800,6 +1875,20 @@ function showAlsoNeededBanner(idx2) {
   banner.style.display = 'flex';
 }
 
+// Kickstart pre-selects a procedure before the parent has done anything -
+// without this, the instructions (and the also-needed banner) render below
+// the fold and a first-time visitor has no idea anything opened at all.
+// requestAnimationFrame lets the 'visible' class/layout change from
+// selectProcedure() actually take effect before we measure where to
+// scroll. Manual taps (normal selectProcedure() calls) are untouched -
+// this only runs on the kickstart-triggered path.
+function scrollInstPanelIntoView() {
+  requestAnimationFrame(function() {
+    var panel = document.getElementById('instPanel');
+    if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+}
+
 function tryPreselectProcedure() {
   if (!loadedProcedures || !loadedProcedures.length) return;
 
@@ -1809,10 +1898,12 @@ function tryPreselectProcedure() {
   if (idx1 !== -1) {
     selectProcedure(idx1);
     if (idx2 !== -1 && idx2 !== idx1) showAlsoNeededBanner(idx2);
+    scrollInstPanelIntoView();
   } else if (idx2 !== -1) {
     // The first procedure name didn't match anything, but the second one
     // did - open that instead of showing nothing at all.
     selectProcedure(idx2);
+    scrollInstPanelIntoView();
   }
 
   pendingProcParam = null;
@@ -2556,6 +2647,7 @@ document.getElementById("painSelect").value = state.painMed||"";
 document.getElementById("abxSelect").value  = state.abxMed||"";
 selectedAbxDoses = state.abxDoses || 0;
 applyKickstartParams();
+renderWelcomeBanner();
 loadPatientInfo();
 loadSurgeryDate();
 loadPostopAppt();
