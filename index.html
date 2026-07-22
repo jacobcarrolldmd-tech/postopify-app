@@ -655,6 +655,13 @@ function continueClick() {
           <label class="alarm-toggle"><input type="checkbox" id="journavxOn"><span class="alarm-slider"></span></label>
         </div>
 
+        <h4 style="margin-top:14px;" data-i18n="tylenolLabel">&#128138; Tylenol</h4>
+        <div class="alarm-row">
+          <div class="alarm-label" id="tylenolFirstDoseLabel">First dose time today<small>Schedules 4 doses every 6 hours</small></div>
+          <input type="time" class="alarm-time-input" id="tylenolTime" value="08:00">
+          <label class="alarm-toggle"><input type="checkbox" id="tylenolOn"><span class="alarm-slider"></span></label>
+        </div>
+
         <h4 style="margin-top:14px;" data-i18n="painMedLabel">&#128308; Pain Medication</h4>
         <div class="alarm-row">
           <div class="alarm-label" data-i18n-html="firstDoseTime4x6">First dose time today<small>Schedules 4 doses every 6 hours</small></div>
@@ -759,10 +766,16 @@ function continueClick() {
       </div>
     </div>
     <div class="card-body">
-      <div class="select-label" data-i18n="ibuFrequencyLabel">Strength prescribed</div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;" id="ibuFrequencyBtns"></div>
-      <div id="ibuSchedule" class="schedule-preview" data-help-key="doseSchedulePreview"></div>
-      <div class="dose-list" id="ibuDoses"></div>
+      <div class="alarm-row" style="border-bottom:none;">
+        <div class="select-label" style="margin:0;" data-i18n="ibuPrescribedLabel">Is the patient taking Ibuprofen?</div>
+        <label class="alarm-toggle"><input type="checkbox" id="ibuPrescribedToggle" checked onchange="onIbuPrescribedToggle()"><span class="alarm-slider"></span></label>
+      </div>
+      <div id="ibuDetail">
+        <div class="select-label" data-i18n="ibuFrequencyLabel">Strength prescribed</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;" id="ibuFrequencyBtns"></div>
+        <div id="ibuSchedule" class="schedule-preview" data-help-key="doseSchedulePreview"></div>
+        <div class="dose-list" id="ibuDoses"></div>
+      </div>
     </div>
   </div>
   <div class="card" id="journavxCard">
@@ -774,7 +787,7 @@ function continueClick() {
       </div>
     </div>
     <div class="card-body">
-      <div class="toggle-row" style="padding:4px 0 14px;">
+      <div class="alarm-row" style="border-bottom:none;">
         <div class="select-label" style="margin:0;" data-i18n="journavxPrescribedLabel">Was Journavx prescribed?</div>
         <label class="alarm-toggle"><input type="checkbox" id="journavxPrescribedToggle" onchange="onJournavxPrescribedToggle()"><span class="alarm-slider"></span></label>
       </div>
@@ -783,6 +796,28 @@ function continueClick() {
         <div id="journavxNextDoseBox" class="warning-box" style="display:none;"></div>
         <div id="journavxSchedule" class="schedule-preview" data-help-key="doseSchedulePreview"></div>
         <div class="dose-list" id="journavxDoses" style="margin-top:14px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="tylenolCard">
+    <div class="card-header" style="background:#0369a1;">
+      <div class="card-header-icon">&#128138;</div>
+      <div>
+        <div class="card-header-title" data-i18n="tylenolTitle">Tylenol</div>
+        <div class="card-header-sub" data-i18n="tylenolSub">Acetaminophen &mdash; Can be taken along with your other pain medications</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="alarm-row" style="border-bottom:none;">
+        <div class="select-label" style="margin:0;" data-i18n="tylenolPrescribedLabel">Is the patient taking Tylenol?</div>
+        <label class="alarm-toggle"><input type="checkbox" id="tylenolPrescribedToggle" onchange="onTylenolPrescribedToggle()"><span class="alarm-slider"></span></label>
+      </div>
+      <div id="tylenolDetail" style="display:none;">
+        <div class="select-label" data-i18n="tylenolFrequencyLabel">How often is it taken?</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;" id="tylenolFrequencyBtns"></div>
+        <div id="tylenolSchedule" class="schedule-preview" data-help-key="doseSchedulePreview"></div>
+        <div class="dose-list" id="tylenolDoses" style="margin-top:14px;"></div>
       </div>
     </div>
   </div>
@@ -796,17 +831,23 @@ function continueClick() {
       </div>
     </div>
     <div class="card-body">
-      <div class="select-label" data-i18n="yourPrescribedMed">Your prescribed medication</div>
-      <select class="select-input" id="painSelect" onchange="onPainSelect()">
-        <option value="" data-i18n="selectMedication">&#8212; Select medication &#8212;</option>
-        <option>Hydrocodone 5/325 mg</option>
-        <option>Oxycodone 5 mg</option>
-        <option>Oxycodone 5/325 mg</option>
-        <option>Tramadol 50 mg</option>
-      </select>
-      <div class="warning-box" data-i18n-html="painWarning">&#9888;&#65039; Do <strong>NOT</strong> drink alcohol or drive. Follow dosing on your prescription label.</div>
-      <div id="painSchedule" class="schedule-preview" data-help-key="doseSchedulePreview"></div>
-      <div class="dose-list" id="painDoses" style="margin-top:14px;"></div>
+      <div class="alarm-row" style="border-bottom:none;">
+        <div class="select-label" style="margin:0;" data-i18n="painPrescribedLabel">Is the patient taking pain medication?</div>
+        <label class="alarm-toggle"><input type="checkbox" id="painPrescribedToggle" onchange="onPainPrescribedToggle()"><span class="alarm-slider"></span></label>
+      </div>
+      <div id="painDetail" style="display:none;">
+        <div class="select-label" data-i18n="yourPrescribedMed">Your prescribed medication</div>
+        <select class="select-input" id="painSelect" onchange="onPainSelect()">
+          <option value="" data-i18n="selectMedication">&#8212; Select medication &#8212;</option>
+          <option>Hydrocodone 5/325 mg</option>
+          <option>Oxycodone 5 mg</option>
+          <option>Oxycodone 5/325 mg</option>
+          <option>Tramadol 50 mg</option>
+        </select>
+        <div class="warning-box" data-i18n-html="painWarning">&#9888;&#65039; Do <strong>NOT</strong> drink alcohol or drive. Follow dosing on your prescription label.</div>
+        <div id="painSchedule" class="schedule-preview" data-help-key="doseSchedulePreview"></div>
+        <div class="dose-list" id="painDoses" style="margin-top:14px;"></div>
+      </div>
     </div>
   </div>
   <div class="card">
@@ -818,6 +859,11 @@ function continueClick() {
       </div>
     </div>
     <div class="card-body">
+      <div class="alarm-row" style="border-bottom:none;">
+        <div class="select-label" style="margin:0;" data-i18n="abxPrescribedLabel">Is the patient taking an antibiotic?</div>
+        <label class="alarm-toggle"><input type="checkbox" id="abxPrescribedToggle" onchange="onAbxPrescribedToggle()"><span class="alarm-slider"></span></label>
+      </div>
+      <div id="abxDetail" style="display:none;">
       <div class="select-label" data-i18n="yourPrescribedAbx">Your prescribed antibiotic</div>
       <select class="select-input" id="abxSelect" onchange="onAbxSelect()">
         <option value="" data-i18n="selectAntibiotic">&#8212; Select antibiotic &#8212;</option>
@@ -840,6 +886,7 @@ function continueClick() {
       <div class="warning-box green-box" style="margin-top:10px;" data-i18n="abxFinishWarning">&#9989; Finish the full course. Take at the same time each day. Check your label for food instructions.</div>
       <div id="abxSchedule" class="schedule-preview" data-help-key="doseSchedulePreview"></div>
       <div class="dose-list" id="abxDoses" style="margin-top:14px;"></div>
+      </div>
     </div>
   </div>
   <div class="card" id="steroidCard">
@@ -1127,6 +1174,18 @@ var LANG = {
     journavxNextDoseRegular: "Next dose: Regular dose \u2014 50 mg.",
     journavxDoseTitle: "Journavx - Dose",
     journavxDoseBody: "Time for your Journavx dose \u2014 check the app to see whether it's your loading or regular dose.",
+    tylenolTitle: "Tylenol",
+    tylenolSub: "Acetaminophen \u2014 Can be taken along with your other pain medications",
+    tylenolLabel: "\uD83D\uDC8A Tylenol",
+    tylenolPrescribedLabel: "Is the patient taking Tylenol?",
+    tylenolFrequencyLabel: "How often is it taken?",
+    tylenolFrequencyOption: "Every {hrs} hours ({doses}x/day)",
+    tylenolFirstDoseTemplate: 'First dose time today<small>Schedules {doses} doses every {hrs} hours</small>',
+    tylenolDoseTitle: "Tylenol - Dose",
+    tylenolDoseBody: "Time for your Tylenol (acetaminophen) dose.",
+    ibuPrescribedLabel: "Is the patient taking Ibuprofen?",
+    painPrescribedLabel: "Is the patient taking pain medication?",
+    abxPrescribedLabel: "Is the patient taking an antibiotic?",
     ibuFirstDoseTemplate: 'First dose time today<small>Schedules {doses} doses every {hrs} hours</small>',
     painMedTitle: "Pain Medication",
     painMedSub: "Take ONLY as needed \u2014 Do NOT drive",
@@ -1347,6 +1406,18 @@ var LANG = {
     journavxNextDoseRegular: "Siguiente dosis: Dosis regular \u2014 50 mg.",
     journavxDoseTitle: "Journavx - Dosis",
     journavxDoseBody: "Hora de su dosis de Journavx \u2014 revise la aplicaci\u00F3n para ver si es su dosis inicial o regular.",
+    tylenolTitle: "Tylenol",
+    tylenolSub: "Acetaminof\u00E9n \u2014 Se puede tomar junto con sus otros medicamentos para el dolor",
+    tylenolLabel: "\uD83D\uDC8A Tylenol",
+    tylenolPrescribedLabel: "\u00BFEl paciente est\u00E1 tomando Tylenol?",
+    tylenolFrequencyLabel: "\u00BFCon qu\u00E9 frecuencia se toma?",
+    tylenolFrequencyOption: "Cada {hrs} horas ({doses}x/d\u00EDa)",
+    tylenolFirstDoseTemplate: 'Hora de la primera dosis hoy<small>Programa {doses} dosis cada {hrs} horas</small>',
+    tylenolDoseTitle: "Tylenol - Dosis",
+    tylenolDoseBody: "Hora de su dosis de Tylenol (acetaminof\u00E9n).",
+    ibuPrescribedLabel: "\u00BFEl paciente est\u00E1 tomando Ibuprofeno?",
+    painPrescribedLabel: "\u00BFEl paciente est\u00E1 tomando medicamento para el dolor?",
+    abxPrescribedLabel: "\u00BFEl paciente est\u00E1 tomando un antibi\u00F3tico?",
     ibuFirstDoseTemplate: 'Hora de la primera dosis hoy<small>Programa {doses} dosis cada {hrs} horas</small>',
     painMedTitle: "Medicamento para el Dolor",
     painMedSub: "Tomar SOLO cuando sea necesario \u2014 NO conducir",
@@ -1573,6 +1644,9 @@ function applyLang() {
   updateSteroidUI();
   updateIbuUI();
   updateJournavxUI();
+  updateTylenolUI();
+  updatePainToggleUI();
+  updateAbxToggleUI();
   if (typeof onAbxSelect === 'function' && document.getElementById('abxSelect').value) onAbxSelect();
   if (typeof renderAll === 'function') renderAll();
   if (typeof updateNotifUI === 'function') {
@@ -1670,6 +1744,9 @@ function reloadForActiveProfile() {
   updateSteroidUI();
   updateIbuUI();
   updateJournavxUI();
+  updateTylenolUI();
+  updatePainToggleUI();
+  updateAbxToggleUI();
   if (state.abxMed) onAbxSelect(); else renderAll();
   var notifBody = document.getElementById('notifBody');
   if (notifBody && notifBody.classList.contains('open')) { updateNotifUI(); updateTelegramUI(); }
@@ -1683,15 +1760,17 @@ const SECTIONS = ["pain","abx"]; // "ibu" handled separately below - its dose co
 // over the same 6 days this app already tracks (Day of Surgery -> Day 5).
 const MEDROL_SCHEDULE = [6,5,4,3,2,1];
 const STEROID_MAX_DOSES = 6;
-const JOURNAVX_DOSES_PER_DAY = 2; // loading dose + first regular dose on day 1, then 2/day (q12h) ongoing // enough slots to cover Medrol's day-1 max
+const JOURNAVX_DOSES_PER_DAY = 2; // loading dose + first regular dose on day 1, then 2/day (q12h) ongoing
+const TYLENOL_MAX_DOSES = 6; // covers the every-4-hours preset (6x/day)
 let state = loadState();
 let currentDay = 0;
 function defaultState() {
   return {
     painMed:"", abxMed:"", abxDoses:2,
-    steroidType:"", dexDuration:0, ibuIntervalHrs:6, journavxPrescribed:false,
+    steroidType:"", dexDuration:0, ibuIntervalHrs:6, ibuPrescribed:true, journavxPrescribed:false, tylenolPrescribed:false, tylenolIntervalHrs:6, painPrescribed:false, abxPrescribed:false,
     ibu:  Array.from({length:DAYS}, () => Array.from({length:DOSES}, () => ({taken:false,time:""}))),
     journavx: Array.from({length:DAYS}, () => Array.from({length:JOURNAVX_DOSES_PER_DAY}, () => ({taken:false,time:""}))),
+    tylenol: Array.from({length:DAYS}, () => Array.from({length:TYLENOL_MAX_DOSES}, () => ({taken:false,time:""}))),
     pain: Array.from({length:DAYS}, () => Array.from({length:DOSES}, () => ({taken:false,time:""}))),
     abx:  Array.from({length:DAYS}, () => Array.from({length:DOSES}, () => ({taken:false,time:""}))),
     steroid: Array.from({length:DAYS}, () => Array.from({length:STEROID_MAX_DOSES}, () => ({taken:false,time:""})))
@@ -1704,9 +1783,17 @@ function normalizeState(s) {
   if (typeof s.steroidType === 'undefined') s.steroidType = "";
   if (typeof s.dexDuration === 'undefined') s.dexDuration = 0;
   if (typeof s.ibuIntervalHrs === 'undefined') { s.ibuIntervalHrs = (s.ibuStrength === 800) ? 8 : 6; delete s.ibuStrength; }
+  if (typeof s.ibuPrescribed === 'undefined') s.ibuPrescribed = true;
+  if (typeof s.painPrescribed === 'undefined') s.painPrescribed = !!s.painMed;
+  if (typeof s.abxPrescribed === 'undefined') s.abxPrescribed = !!s.abxMed;
   if (typeof s.journavxPrescribed === 'undefined') s.journavxPrescribed = false;
   if (!s.journavx) {
     s.journavx = Array.from({length:DAYS}, () => Array.from({length:JOURNAVX_DOSES_PER_DAY}, () => ({taken:false,time:""})));
+  }
+  if (typeof s.tylenolPrescribed === 'undefined') s.tylenolPrescribed = false;
+  if (typeof s.tylenolIntervalHrs === 'undefined') s.tylenolIntervalHrs = 6;
+  if (!s.tylenol) {
+    s.tylenol = Array.from({length:DAYS}, () => Array.from({length:TYLENOL_MAX_DOSES}, () => ({taken:false,time:""})));
   }
   if (!s.steroid) {
     s.steroid = Array.from({length:DAYS}, () => Array.from({length:STEROID_MAX_DOSES}, () => ({taken:false,time:""})));
@@ -1733,7 +1820,7 @@ function steroidDosesForDay(day) {
 // on a liquid dose thinking the app was telling them what dose to take.
 var IBU_FREQUENCY_OPTIONS = [6, 8];
 var IBU_DOSES_BY_INTERVAL = {6:4, 8:3};
-function ibuNumDoses()     { return IBU_DOSES_BY_INTERVAL[state.ibuIntervalHrs] || 4; }
+function ibuNumDoses()     { return state.ibuPrescribed ? (IBU_DOSES_BY_INTERVAL[state.ibuIntervalHrs] || 4) : 0; }
 function ibuIntervalHrs()  { return state.ibuIntervalHrs || 6; }
 function ibuIntervalMins() { return ibuIntervalHrs() * 60; }
 
@@ -1826,6 +1913,56 @@ function updateJournavxUI() {
   updateJournavxNextDoseBox();
 }
 
+// Tylenol (acetaminophen) dosing frequency - like Ibuprofen, deliberately
+// NOT tied to a specific mg strength, for the same liquid/weight-based
+// dosing reason. Uses its own TYLENOL_MAX_DOSES-sized array (6, not the
+// shared DOSES=4) since the every-4-hours preset is 6 doses/day.
+var TYLENOL_FREQUENCY_OPTIONS = [6, 4];
+var TYLENOL_DOSES_BY_INTERVAL = {6:4, 4:6};
+function tylenolDosesForDay(day) { return state.tylenolPrescribed ? (TYLENOL_DOSES_BY_INTERVAL[state.tylenolIntervalHrs] || 4) : 0; }
+function tylenolIntervalHrs()  { return state.tylenolIntervalHrs || 6; }
+function tylenolIntervalMins() { return tylenolIntervalHrs() * 60; }
+
+function renderTylenolFrequencyButtons() {
+  var wrap = document.getElementById('tylenolFrequencyBtns');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  TYLENOL_FREQUENCY_OPTIONS.forEach(function(hrs) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'abx-dose-btn' + (tylenolIntervalHrs() === hrs ? ' selected' : '');
+    btn.textContent = tf('tylenolFrequencyOption', {hrs: hrs, doses: TYLENOL_DOSES_BY_INTERVAL[hrs]});
+    btn.onclick = function() { selectTylenolFrequency(hrs); };
+    wrap.appendChild(btn);
+  });
+}
+
+function selectTylenolFrequency(hrs) {
+  state.tylenolIntervalHrs = hrs;
+  saveState();
+  updateTylenolUI();
+  renderAll();
+}
+
+function onTylenolPrescribedToggle() {
+  state.tylenolPrescribed = document.getElementById('tylenolPrescribedToggle').checked;
+  saveState();
+  updateTylenolUI();
+  renderAll();
+}
+
+function updateTylenolUI() {
+  var toggle = document.getElementById('tylenolPrescribedToggle');
+  if (toggle) toggle.checked = !!state.tylenolPrescribed;
+  var detail = document.getElementById('tylenolDetail');
+  if (detail) detail.style.display = state.tylenolPrescribed ? 'block' : 'none';
+  renderTylenolFrequencyButtons();
+  var vars = { hrs: tylenolIntervalHrs(), doses: tylenolDosesForDay(0) || TYLENOL_DOSES_BY_INTERVAL[tylenolIntervalHrs()] };
+  var alarmLbl = document.getElementById('tylenolFirstDoseLabel');
+  if (alarmLbl) alarmLbl.innerHTML = tf('tylenolFirstDoseTemplate', vars);
+}
+
+
 
 function renderIbuFrequencyButtons() {
   var wrap = document.getElementById('ibuFrequencyBtns');
@@ -1863,7 +2000,48 @@ function updateIbuUI() {
   if (subEl) subEl.textContent = tf('antiInflamSub', vars);
   var alarmLbl = document.getElementById('ibuFirstDoseLabel');
   if (alarmLbl) alarmLbl.innerHTML = tf('ibuFirstDoseTemplate', vars);
+  var ibuToggle = document.getElementById('ibuPrescribedToggle');
+  if (ibuToggle) ibuToggle.checked = !!state.ibuPrescribed;
+  var ibuDetail = document.getElementById('ibuDetail');
+  if (ibuDetail) ibuDetail.style.display = state.ibuPrescribed ? 'block' : 'none';
 }
+
+function painDosesForDay(day) { return state.painPrescribed ? DOSES : 0; }
+function abxDosesForDay(day)  { return state.abxPrescribed ? (selectedAbxDoses > 0 ? selectedAbxDoses : DOSES) : 0; }
+
+function onIbuPrescribedToggle() {
+  state.ibuPrescribed = document.getElementById('ibuPrescribedToggle').checked;
+  saveState();
+  updateIbuUI();
+  renderAll();
+}
+
+function onPainPrescribedToggle() {
+  state.painPrescribed = document.getElementById('painPrescribedToggle').checked;
+  saveState();
+  updatePainToggleUI();
+  renderAll();
+}
+function updatePainToggleUI() {
+  var toggle = document.getElementById('painPrescribedToggle');
+  if (toggle) toggle.checked = !!state.painPrescribed;
+  var detail = document.getElementById('painDetail');
+  if (detail) detail.style.display = state.painPrescribed ? 'block' : 'none';
+}
+
+function onAbxPrescribedToggle() {
+  state.abxPrescribed = document.getElementById('abxPrescribedToggle').checked;
+  saveState();
+  updateAbxToggleUI();
+  renderAll();
+}
+function updateAbxToggleUI() {
+  var toggle = document.getElementById('abxPrescribedToggle');
+  if (toggle) toggle.checked = !!state.abxPrescribed;
+  var detail = document.getElementById('abxDetail');
+  if (detail) detail.style.display = state.abxPrescribed ? 'block' : 'none';
+}
+
 
 function loadState() {
   try { const s = localStorage.getItem(pk("postopify_postop")); if(s) return normalizeState(JSON.parse(s)); } catch(e) {}
@@ -2493,6 +2671,13 @@ function updateSchedulePreviews() {
       var elJ = document.getElementById('journavxSchedule');
       if (elJ) elJ.classList.remove('visible');
     }
+
+    if (alarms.tylenolOn && alarms.tylenolTime && tylenolDosesForDay(day) > 0) {
+      buildSchedulePreview('tylenolSchedule', 'tylenol', alarms.tylenolTime, tylenolDosesForDay(day), tylenolIntervalMins(), day);
+    } else {
+      var elT = document.getElementById('tylenolSchedule');
+      if (elT) elT.classList.remove('visible');
+    }
     var abxFreq = parseInt(alarms.abxFreq || selectedAbxDoses || 2);
     var abxInterval = computeAbxInterval(alarms.abxTime || '08:00', abxFreq);
     if (alarms.abxOn && alarms.abxTime && abxFreq > 0) {
@@ -2509,7 +2694,9 @@ function renderDoses(containerId, section, day) {
   var dosesToShow = DOSES;
   if (section === "ibu") dosesToShow = ibuNumDoses();
   if (section === "journavx") dosesToShow = journavxDosesForDay(day);
-  if (section === "abx" && selectedAbxDoses > 0) dosesToShow = selectedAbxDoses;
+  if (section === "tylenol") dosesToShow = tylenolDosesForDay(day);
+  if (section === "pain") dosesToShow = painDosesForDay(day);
+  if (section === "abx") dosesToShow = abxDosesForDay(day);
   if (section === "steroid") dosesToShow = steroidDosesForDay(day);
   if (section === "steroid" && dosesToShow === 0) {
     container.innerHTML = state.steroidType
@@ -2544,6 +2731,7 @@ function renderDoses(containerId, section, day) {
 function renderAll() {
   renderDoses("ibuDoses","ibu",currentDay);
   renderDoses("journavxDoses","journavx",currentDay);
+  renderDoses("tylenolDoses","tylenol",currentDay);
   renderDoses("painDoses","pain",currentDay);
   renderDoses("abxDoses","abx",currentDay);
   renderDoses("steroidDoses","steroid",currentDay);
@@ -2839,12 +3027,18 @@ function updateSteroidUI() {
 }
 function updateProgress() {
   let taken=0, total=0;
-  SECTIONS.forEach(s => {
-    for(let d=0;d<DAYS;d++) for(let i=0;i<DOSES;i++) {
+  for (let d=0; d<DAYS; d++) {
+    var pn = painDosesForDay(d);
+    for (let i=0; i<pn; i++) {
       total++;
-      if(state[s][d][i]&&state[s][d][i].taken) taken++;
+      if (state.pain[d][i] && state.pain[d][i].taken) taken++;
     }
-  });
+    var an = abxDosesForDay(d);
+    for (let i=0; i<an; i++) {
+      total++;
+      if (state.abx[d][i] && state.abx[d][i].taken) taken++;
+    }
+  }
   // Steroid doses-per-day vary (Medrol tapers, dex has a set duration), so
   // only count the doses that actually apply rather than a flat max.
   for (let d=0; d<DAYS; d++) {
@@ -2870,18 +3064,31 @@ function updateProgress() {
       if (state.journavx[d][i] && state.journavx[d][i].taken) taken++;
     }
   }
+  // Tylenol - same treatment (only counts if toggled on).
+  for (let d=0; d<DAYS; d++) {
+    var tn = tylenolDosesForDay(d);
+    for (let i=0; i<tn; i++) {
+      total++;
+      if (state.tylenol[d][i] && state.tylenol[d][i].taken) taken++;
+    }
+  }
   document.getElementById("progressBar").style.width=(taken/total*100)+"%";
 }
 function updateDayTabBadges() {
   document.querySelectorAll(".day-tab").forEach((tab,day) => {
     let hasSome=false;
-    SECTIONS.forEach(s => { for(let d=0;d<DOSES;d++) if(state[s][day][d]&&state[s][day][d].taken) hasSome=true; });
+    var pn = painDosesForDay(day);
+    for (let i=0;i<pn;i++) if (state.pain[day][i] && state.pain[day][i].taken) hasSome=true;
+    var an = abxDosesForDay(day);
+    for (let i=0;i<an;i++) if (state.abx[day][i] && state.abx[day][i].taken) hasSome=true;
     var n = steroidDosesForDay(day);
     for (let i=0;i<n;i++) if (state.steroid[day][i] && state.steroid[day][i].taken) hasSome=true;
     var ibuN = ibuNumDoses();
     for (let i=0;i<ibuN;i++) if (state.ibu[day][i] && state.ibu[day][i].taken) hasSome=true;
     var jn = journavxDosesForDay(day);
     for (let i=0;i<jn;i++) if (state.journavx[day][i] && state.journavx[day][i].taken) hasSome=true;
+    var tn = tylenolDosesForDay(day);
+    for (let i=0;i<tn;i++) if (state.tylenol[day][i] && state.tylenol[day][i].taken) hasSome=true;
     tab.classList.toggle("has-data",hasSome);
   });
 }
@@ -2909,6 +3116,9 @@ renderProfileMenu();
 updateSteroidUI();
 updateIbuUI();
 updateJournavxUI();
+updateTylenolUI();
+updatePainToggleUI();
+updateAbxToggleUI();
 if (state.abxMed) onAbxSelect();
 else renderAll();
 applyLang();
@@ -2918,7 +3128,7 @@ applyHelpModeUI();
 // Bump the trailing number for a same-day update, or start a new date at
 // -1 for the next day. Must match version.txt on the server exactly, or
 // every tab will think an update is available.
-var APP_VERSION = '7-22-2026-f89c35d';
+var APP_VERSION = '7-22-2026-40b34fb';
 (function(){ var f = document.getElementById('appVersionFooter'); if (f) f.textContent = 'Updated: ' + APP_VERSION; })();
 
 function checkForAppUpdate() {
@@ -3167,7 +3377,7 @@ function playAlarmSound() {
     if (dur !== 'until') { _alarmStopTimer = setTimeout(stopAlarmSound, parseInt(dur)*1000); }
   } catch(e) {}
 }
-function scheduleInAppAlarms(ibuOn, painOn, abxOn, ibuTime, painTime, abxTime, abxFreq, steroidOn, steroidTime, journavxOn, journavxTime) {
+function scheduleInAppAlarms(ibuOn, painOn, abxOn, ibuTime, painTime, abxTime, abxFreq, steroidOn, steroidTime, journavxOn, journavxTime, tylenolOn, tylenolTime) {
   var pid = activeProfileId();
   var pname = activeProfileName();
   clearInAppAlarms(pid);
@@ -3193,6 +3403,11 @@ function scheduleInAppAlarms(ibuOn, painOn, abxOn, ibuTime, painTime, abxTime, a
     var journavxN = journavxDosesForDay(currentDay), TWELVE = 12 * 60 * 60 * 1000;
     for (var m=0;m<journavxN;m++) addTimer(msUntil(journavxTime)+m*TWELVE,
       pname+': '+t('journavxDoseTitle')+' '+(m+1)+t('ofWord')+journavxN, t('journavxDoseBody'), pid+'-journavx'+m);
+  }
+  if (tylenolOn) {
+    var tylenolN = tylenolDosesForDay(currentDay), tylenolMs = tylenolIntervalHrs() * 60 * 60 * 1000;
+    for (var y=0;y<tylenolN;y++) addTimer(msUntil(tylenolTime)+y*tylenolMs,
+      pname+': '+t('tylenolDoseTitle')+' '+(y+1)+t('ofWord')+tylenolN, t('tylenolDoseBody'), pid+'-tylenol'+y);
   }
 }
 // Resolves the current practice's id for Telegram/Cloudflare sync, from the
@@ -3348,6 +3563,8 @@ function saveAlarms() {
   var abxFreq = parseInt(document.getElementById('abxFreq').value);
   var journavxOn   = document.getElementById('journavxOn').checked;
   var journavxTime = document.getElementById('journavxTime').value;
+  var tylenolOn    = document.getElementById('tylenolOn').checked;
+  var tylenolTime  = document.getElementById('tylenolTime').value;
   var steroidDoses = steroidDosesForDay(currentDay);
   var steroidEl = document.getElementById('steroidOn');
   var steroidTimeEl = document.getElementById('steroidTime');
@@ -3363,7 +3580,8 @@ function saveAlarms() {
       ibuTime:ibuTime, painTime:painTime, abxTime:abxTime,
       ibuOn:ibuOn, painOn:painOn, abxOn:abxOn, abxFreq:abxFreq,
       steroidOn:steroidOn, steroidTime:steroidTime,
-      journavxOn:journavxOn, journavxTime:journavxTime
+      journavxOn:journavxOn, journavxTime:journavxTime,
+      tylenolOn:tylenolOn, tylenolTime:tylenolTime
     }));
   } catch(e) {}
   // Sync schedule to Cloudflare for Telegram reminders (best-effort, non-blocking)
@@ -3380,6 +3598,7 @@ function saveAlarms() {
       scheduleData.steroid = { time: steroidTime, numDoses: 1, intervalMins: 0, label: steroidReminderLabel(), startDate: todayStr, durationDays: steroidDuration };
     }
     if (journavxOn) scheduleData.journavx = { time: journavxTime, numDoses: journavxDosesForDay(currentDay), intervalMins: 720, label: 'Journavx', startDate: todayStr, durationDays: DAYS };
+    if (tylenolOn) scheduleData.tylenol = { time: tylenolTime, numDoses: tylenolDosesForDay(currentDay), intervalMins: tylenolIntervalMins(), label: 'Tylenol', startDate: todayStr, durationDays: DAYS };
 
     fetch('https://postopify-schedule-sync.jacobcarrolldmd.workers.dev/', {
       method: 'POST',
@@ -3412,7 +3631,7 @@ function saveAlarms() {
     // patient's reminders (tagged with a different profile id) stay armed.
     if (swReg.active) swReg.active.postMessage({ type: 'CLEAR', profileId: pid });
     // Also set in-app timers as a reliable fallback while the app is open
-    scheduleInAppAlarms(ibuOn, painOn, abxOn, ibuTime, painTime, abxTime, abxFreq, steroidOn, steroidTime, journavxOn, journavxTime);
+    scheduleInAppAlarms(ibuOn, painOn, abxOn, ibuTime, painTime, abxTime, abxFreq, steroidOn, steroidTime, journavxOn, journavxTime, tylenolOn, tylenolTime);
     var abxInterval = computeAbxInterval(abxTime, abxFreq);
     if (ibuOn && swReg.active) {
       var ibuNSw = ibuNumDoses(), ibuIntervalMsSw = ibuIntervalHrs() * 60 * 60 * 1000;
@@ -3466,6 +3685,18 @@ function saveAlarms() {
           body: t('journavxDoseBody'),
           delay: msUntil(journavxTime) + (m * TWELVE_SW),
           tag: pid + '-journavx' + m
+        });
+      }
+    }
+    if (tylenolOn && swReg.active) {
+      var tylenolNSw = tylenolDosesForDay(currentDay), tylenolMsSw = tylenolIntervalHrs() * 60 * 60 * 1000;
+      for (var y = 0; y < tylenolNSw; y++) {
+        swReg.active.postMessage({
+          type:'SCHEDULE',
+          title: pname + ': ' + t('tylenolDoseTitle') + ' ' + (y+1) + t('ofWord') + tylenolNSw,
+          body: t('tylenolDoseBody'),
+          delay: msUntil(tylenolTime) + (y * tylenolMsSw),
+          tag: pid + '-tylenol' + y
         });
       }
     }
