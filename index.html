@@ -642,7 +642,7 @@ function continueClick() {
             <button type="button" class="reminders-howto-help-btn" onclick="turnOnHelpModeAndShow('notifSection')" data-i18n="howtoHelpBtn">&#10067; Turn on Help Mode for more</button>
           </div>
         </div>
-        <h4>&#129138; <span id="ibuprofenLabelText">Ibuprofen 600 mg</span></h4>
+        <h4>&#129138; <span id="ibuprofenLabelText">Ibuprofen</span></h4>
         <div class="alarm-row">
           <div class="alarm-label" id="ibuFirstDoseLabel">First dose time today<small>Schedules 4 doses every 6 hours</small></div>
           <input type="time" class="alarm-time-input" id="ibuTime" value="08:00">
@@ -752,8 +752,8 @@ function continueClick() {
       </div>
     </div>
     <div class="card-body">
-      <div class="select-label" data-i18n="ibuStrengthLabel">Strength prescribed</div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;" id="ibuStrengthBtns"></div>
+      <div class="select-label" data-i18n="ibuFrequencyLabel">Strength prescribed</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;" id="ibuFrequencyBtns"></div>
       <div id="ibuSchedule" class="schedule-preview" data-help-key="doseSchedulePreview"></div>
       <div class="dose-list" id="ibuDoses"></div>
     </div>
@@ -1065,7 +1065,7 @@ var LANG = {
     howtoStep3: "For antibiotics, choose how many times per day first, then set the time.",
     howtoStep4: 'Scroll down and tap "Set My Reminders" to turn the alarms on.',
     howtoHelpBtn: "\u2753 Turn on Help Mode for more",
-    ibuprofenLabel: "Ibuprofen {mg} mg",
+    ibuprofenLabel: "Ibuprofen",
     painMedLabel: "\uD83D\uDD34 Pain Medication",
     antibioticLabel: "\uD83D\uDFE2 Antibiotic",
     firstDoseTime4x6: 'First dose time today<small>Schedules 4 doses every 6 hours</small>',
@@ -1083,8 +1083,9 @@ var LANG = {
     scheduleRemindersBtn: "\u2713 Schedule Today\u2019s Reminders",
     alarmNote: '\uD83D\uDD14 Reminders fire today only \u2014 open the app each morning to reschedule.<br>Tap a notification to open the app and log your dose.',
     antiInflamTitle: "Anti-Inflammatory",
-    antiInflamSub: "Ibuprofen {mg} mg \u2014 Take with food \u2014 Every {hrs} hours, max {doses} doses/day",
-    ibuStrengthLabel: "Strength prescribed",
+    antiInflamSub: "Ibuprofen \u2014 Take with food \u2014 Every {hrs} hours, max {doses} doses/day",
+    ibuFrequencyLabel: "How often is it taken?",
+    ibuFrequencyOption: "Every {hrs} hours ({doses}x/day)",
     ibuFirstDoseTemplate: 'First dose time today<small>Schedules {doses} doses every {hrs} hours</small>',
     painMedTitle: "Pain Medication",
     painMedSub: "Take ONLY as needed \u2014 Do NOT drive",
@@ -1156,7 +1157,7 @@ var LANG = {
     notifUnsupportedAlert: "Your browser does not support notifications. Try opening this app in Safari (iPhone) or Chrome (Android).",
     welcomeNotifTitle: "Reminders Active",
     welcomeNotifBody: "You will now receive dose reminders. Set your times below.",
-    ibuDoseTitle: "Ibuprofen {mg} mg - Dose",
+    ibuDoseTitle: "Ibuprofen - Dose",
     ibuDoseBody: "Take with food. Open the app to log this dose.",
     painDoseTitle: "Pain Medication \u2014 Dose",
     painDoseBody: "Take only if pain is not controlled by ibuprofen. Do not drive.",
@@ -1272,7 +1273,7 @@ var LANG = {
     howtoStep3: "Para antibi\u00F3ticos, elija primero cu\u00E1ntas veces al d\u00EDa y luego configure la hora.",
     howtoStep4: '\u201CDeslice hacia abajo y toque \u201CConfigurar Mis Recordatorios\u201D para activar las alarmas.',
     howtoHelpBtn: "\u2753 Active el Modo de Ayuda para m\u00E1s informaci\u00F3n",
-    ibuprofenLabel: "Ibuprofeno {mg} mg",
+    ibuprofenLabel: "Ibuprofeno",
     painMedLabel: "\uD83D\uDD34 Medicamento para el Dolor",
     antibioticLabel: "\uD83D\uDFE2 Antibi\u00F3tico",
     firstDoseTime4x6: 'Hora de la primera dosis hoy<small>Programa 4 dosis cada 6 horas</small>',
@@ -1290,8 +1291,9 @@ var LANG = {
     scheduleRemindersBtn: "\u2713 Programar los Recordatorios de Hoy",
     alarmNote: '\uD83D\uDD14 Los recordatorios suenan solo hoy \u2014 abra la aplicaci\u00F3n cada ma\u00F1ana para reprogramar.<br>Toque una notificaci\u00F3n para abrir la aplicaci\u00F3n y registrar su dosis.',
     antiInflamTitle: "Antiinflamatorio",
-    antiInflamSub: "Ibuprofeno {mg} mg \u2014 Tomar con alimentos \u2014 Cada {hrs} horas, m\u00E1ximo {doses} dosis/d\u00EDa",
-    ibuStrengthLabel: "Concentraci\u00F3n recetada",
+    antiInflamSub: "Ibuprofeno \u2014 Tomar con alimentos \u2014 Cada {hrs} horas, m\u00E1ximo {doses} dosis/d\u00EDa",
+    ibuFrequencyLabel: "\u00BFCon qu\u00E9 frecuencia se toma?",
+    ibuFrequencyOption: "Cada {hrs} horas ({doses}x/d\u00EDa)",
     ibuFirstDoseTemplate: 'Hora de la primera dosis hoy<small>Programa {doses} dosis cada {hrs} horas</small>',
     painMedTitle: "Medicamento para el Dolor",
     painMedSub: "Tomar SOLO cuando sea necesario \u2014 NO conducir",
@@ -1363,7 +1365,7 @@ var LANG = {
     notifUnsupportedAlert: "Su navegador no admite notificaciones. Intente abrir esta aplicaci\u00F3n en Safari (iPhone) o Chrome (Android).",
     welcomeNotifTitle: "Recordatorios Activos",
     welcomeNotifBody: "Ahora recibir\u00E1 recordatorios de dosis. Configure sus horarios abajo.",
-    ibuDoseTitle: "Ibuprofeno {mg} mg \u2014 Dosis",
+    ibuDoseTitle: "Ibuprofeno \u2014 Dosis",
     ibuDoseBody: "Tome con alimentos. Abra la aplicaci\u00F3n para registrar esta dosis.",
     painDoseTitle: "Medicamento para el Dolor \u2014 Dosis",
     painDoseBody: "Tome solo si el dolor no se controla con ibuprofeno. No conduzca.",
@@ -1631,7 +1633,7 @@ let currentDay = 0;
 function defaultState() {
   return {
     painMed:"", abxMed:"", abxDoses:2,
-    steroidType:"", dexDuration:0, ibuStrength:600,
+    steroidType:"", dexDuration:0, ibuIntervalHrs:6,
     ibu:  Array.from({length:DAYS}, () => Array.from({length:DOSES}, () => ({taken:false,time:""}))),
     pain: Array.from({length:DAYS}, () => Array.from({length:DOSES}, () => ({taken:false,time:""}))),
     abx:  Array.from({length:DAYS}, () => Array.from({length:DOSES}, () => ({taken:false,time:""}))),
@@ -1644,7 +1646,7 @@ function normalizeState(s) {
   if (!s) return defaultState();
   if (typeof s.steroidType === 'undefined') s.steroidType = "";
   if (typeof s.dexDuration === 'undefined') s.dexDuration = 0;
-  if (typeof s.ibuStrength === 'undefined') s.ibuStrength = 600;
+  if (typeof s.ibuIntervalHrs === 'undefined') { s.ibuIntervalHrs = (s.ibuStrength === 800) ? 8 : 6; delete s.ibuStrength; }
   if (!s.steroid) {
     s.steroid = Array.from({length:DAYS}, () => Array.from({length:STEROID_MAX_DOSES}, () => ({taken:false,time:""})));
   }
@@ -1663,29 +1665,33 @@ function steroidDosesForDay(day) {
 // of the standard every-6-hours (4x/day). The ibu[] array itself always
 // stays 4 slots long (same fixed-size approach as steroid's array); only
 // how many of those slots are shown/scheduled changes.
-var IBU_STRENGTHS = [200, 400, 600, 800];
-var IBU_DOSES_BY_STRENGTH = {200:4, 400:4, 600:4, 800:3};
-var IBU_INTERVAL_HRS_BY_STRENGTH = {200:6, 400:6, 600:6, 800:8};
-function ibuNumDoses()     { return IBU_DOSES_BY_STRENGTH[state.ibuStrength] || 4; }
-function ibuIntervalHrs()  { return IBU_INTERVAL_HRS_BY_STRENGTH[state.ibuStrength] || 6; }
+// Ibuprofen dosing frequency - deliberately NOT tied to a specific mg
+// strength, since liquid/weight-based pediatric doses don't line up with
+// fixed tablet strengths (e.g. 150mg liquid) but are still either every 6
+// or every 8 hours in practice. Showing an exact mg here risked a patient
+// on a liquid dose thinking the app was telling them what dose to take.
+var IBU_FREQUENCY_OPTIONS = [6, 8];
+var IBU_DOSES_BY_INTERVAL = {6:4, 8:3};
+function ibuNumDoses()     { return IBU_DOSES_BY_INTERVAL[state.ibuIntervalHrs] || 4; }
+function ibuIntervalHrs()  { return state.ibuIntervalHrs || 6; }
 function ibuIntervalMins() { return ibuIntervalHrs() * 60; }
 
-function renderIbuStrengthButtons() {
-  var wrap = document.getElementById('ibuStrengthBtns');
+function renderIbuFrequencyButtons() {
+  var wrap = document.getElementById('ibuFrequencyBtns');
   if (!wrap) return;
   wrap.innerHTML = '';
-  IBU_STRENGTHS.forEach(function(mg) {
+  IBU_FREQUENCY_OPTIONS.forEach(function(hrs) {
     var btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'abx-dose-btn' + (state.ibuStrength === mg ? ' selected' : '');
-    btn.textContent = mg + ' mg';
-    btn.onclick = function() { selectIbuStrength(mg); };
+    btn.className = 'abx-dose-btn' + (ibuIntervalHrs() === hrs ? ' selected' : '');
+    btn.textContent = tf('ibuFrequencyOption', {hrs: hrs, doses: IBU_DOSES_BY_INTERVAL[hrs]});
+    btn.onclick = function() { selectIbuFrequency(hrs); };
     wrap.appendChild(btn);
   });
 }
 
-function selectIbuStrength(mg) {
-  state.ibuStrength = mg;
+function selectIbuFrequency(hrs) {
+  state.ibuIntervalHrs = hrs;
   saveState();
   updateIbuUI();
   renderAll();
@@ -1698,8 +1704,8 @@ function selectIbuStrength(mg) {
 // directly, so they pick up the change automatically without needing to be
 // called here.)
 function updateIbuUI() {
-  renderIbuStrengthButtons();
-  var vars = { mg: state.ibuStrength, hrs: ibuIntervalHrs(), doses: ibuNumDoses() };
+  renderIbuFrequencyButtons();
+  var vars = { hrs: ibuIntervalHrs(), doses: ibuNumDoses() };
   var labelEl = document.getElementById('ibuprofenLabelText');
   if (labelEl) labelEl.textContent = tf('ibuprofenLabel', vars);
   var subEl = document.getElementById('antiInflamSubText');
@@ -2736,7 +2742,7 @@ applyHelpModeUI();
 // Bump the trailing number for a same-day update, or start a new date at
 // -1 for the next day. Must match version.txt on the server exactly, or
 // every tab will think an update is available.
-var APP_VERSION = '7-22-2026-847f255';
+var APP_VERSION = '7-22-2026-40b34fb';
 (function(){ var f = document.getElementById('appVersionFooter'); if (f) f.textContent = 'Updated: ' + APP_VERSION; })();
 
 function checkForAppUpdate() {
@@ -2999,7 +3005,7 @@ function scheduleInAppAlarms(ibuOn, painOn, abxOn, ibuTime, painTime, abxTime, a
   if (ibuOn) {
     var ibuN = ibuNumDoses(), ibuIntervalMs = ibuIntervalHrs() * 60 * 60 * 1000;
     for (var i=0;i<ibuN;i++) addTimer(msUntil(ibuTime)+i*ibuIntervalMs,
-      pname+': '+tf('ibuDoseTitle',{mg:state.ibuStrength})+' '+(i+1)+t('ofWord')+ibuN, t('ibuDoseBody'), pid+'-ibu'+i);
+      pname+': '+t('ibuDoseTitle')+' '+(i+1)+t('ofWord')+ibuN, t('ibuDoseBody'), pid+'-ibu'+i);
   }
   if (painOn) { for (var j=0;j<4;j++) addTimer(msUntil(painTime)+j*SIX,
       pname+': '+t('painDoseTitle')+' '+(j+1)+t('ofWord')+'4', t('painDoseBody'), pid+'-pain'+j); }
@@ -3182,7 +3188,7 @@ function saveAlarms() {
     var todayStr = localDateString();
     var practiceId = currentPracticeId();
     var scheduleData = {};
-    if (ibuOn) scheduleData.ibu = { time: ibuTime, numDoses: ibuNumDoses(), intervalMins: ibuIntervalMins(), label: 'Ibuprofen ' + state.ibuStrength + 'mg', startDate: todayStr, durationDays: DAYS };
+    if (ibuOn) scheduleData.ibu = { time: ibuTime, numDoses: ibuNumDoses(), intervalMins: ibuIntervalMins(), label: 'Ibuprofen', startDate: todayStr, durationDays: DAYS };
     if (painOn) scheduleData.pain = { time: painTime, numDoses: 4, intervalMins: 360, label: state.painMed || 'Pain medication', startDate: todayStr, durationDays: DAYS };
     if (abxOn) scheduleData.abx = { time: abxTime, numDoses: abxFreq, intervalMins: computeAbxInterval(abxTime, abxFreq), label: state.abxMed || 'Antibiotic', startDate: todayStr, durationDays: DAYS };
     if (steroidOn) {
@@ -3228,7 +3234,7 @@ function saveAlarms() {
       for (var i = 0; i < ibuNSw; i++) {
         swReg.active.postMessage({
           type:'SCHEDULE',
-          title: pname + ': ' + tf('ibuDoseTitle',{mg:state.ibuStrength}) + ' ' + (i+1) + t('ofWord') + ibuNSw,
+          title: pname + ': ' + t('ibuDoseTitle') + ' ' + (i+1) + t('ofWord') + ibuNSw,
           body: t('ibuDoseBody'),
           delay: msUntil(ibuTime) + (i * ibuIntervalMsSw),
           tag: pid + '-ibu' + i
