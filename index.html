@@ -648,6 +648,13 @@ function continueClick() {
           <input type="time" class="alarm-time-input" id="ibuTime" value="08:00">
           <label class="alarm-toggle"><input type="checkbox" id="ibuOn"><span class="alarm-slider"></span></label>
         </div>
+        <h4 style="margin-top:14px;" data-i18n="journavxLabel">&#128137; Journavx</h4>
+        <div class="alarm-row">
+          <div class="alarm-label" data-i18n-html="journavxFirstDoseTime">First dose time today<small>Schedules 2 doses every 12 hours</small></div>
+          <input type="time" class="alarm-time-input" id="journavxTime" value="08:00">
+          <label class="alarm-toggle"><input type="checkbox" id="journavxOn"><span class="alarm-slider"></span></label>
+        </div>
+
         <h4 style="margin-top:14px;" data-i18n="painMedLabel">&#128308; Pain Medication</h4>
         <div class="alarm-row">
           <div class="alarm-label" data-i18n-html="firstDoseTime4x6">First dose time today<small>Schedules 4 doses every 6 hours</small></div>
@@ -758,6 +765,28 @@ function continueClick() {
       <div class="dose-list" id="ibuDoses"></div>
     </div>
   </div>
+  <div class="card" id="journavxCard">
+    <div class="card-header" style="background:#be185d;">
+      <div class="card-header-icon">&#128137;</div>
+      <div>
+        <div class="card-header-title" data-i18n="journavxTitle">Journavx</div>
+        <div class="card-header-sub" data-i18n="journavxSub">Can be taken along with your other pain medications</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="toggle-row" style="padding:4px 0 14px;">
+        <div class="select-label" style="margin:0;" data-i18n="journavxPrescribedLabel">Was Journavx prescribed?</div>
+        <label class="alarm-toggle"><input type="checkbox" id="journavxPrescribedToggle" onchange="onJournavxPrescribedToggle()"><span class="alarm-slider"></span></label>
+      </div>
+      <div id="journavxDetail" style="display:none;">
+        <div class="warning-box green-box" data-i18n-html="journavxDoseInfo">First dose: 2 tablets (100 mg) on an empty stomach. After that: 50 mg every 12 hours while you have pain. If you miss more than two doses in a row, the next dose goes back to the starting 2-tablet (100 mg) dose.</div>
+        <div id="journavxNextDoseBox" class="warning-box" style="display:none;"></div>
+        <div id="journavxSchedule" class="schedule-preview" data-help-key="doseSchedulePreview"></div>
+        <div class="dose-list" id="journavxDoses" style="margin-top:14px;"></div>
+      </div>
+    </div>
+  </div>
+
   <div class="card">
     <div class="card-header orange">
       <div class="card-header-icon">&#128308;</div>
@@ -1086,6 +1115,18 @@ var LANG = {
     antiInflamSub: "Ibuprofen \u2014 Take with food \u2014 Every {hrs} hours, max {doses} doses/day",
     ibuFrequencyLabel: "How often is it taken?",
     ibuFrequencyOption: "Every {hrs} hours ({doses}x/day)",
+    journavxTitle: "Journavx",
+    journavxSub: "Can be taken along with your other pain medications",
+    journavxLabel: "\uD83D\uDC97 Journavx",
+    journavxPrescribedLabel: "Was Journavx prescribed?",
+    journavxDoseInfo: "First dose: 2 tablets (100 mg) on an empty stomach. After that: 50 mg every 12 hours while you have pain. If you miss more than two doses in a row, the next dose goes back to the starting 2-tablet (100 mg) dose.",
+    journavxFirstDoseTime: 'First dose time today<small>Schedules 2 doses every 12 hours</small>',
+    journavxLoadingDoseLabel: "Loading dose \u2014 2 tablets (100 mg)",
+    journavxRegularDoseLabel: "Regular dose \u2014 50 mg",
+    journavxNextDoseLoading: "Next dose: Loading dose \u2014 2 tablets (100 mg), on an empty stomach.",
+    journavxNextDoseRegular: "Next dose: Regular dose \u2014 50 mg.",
+    journavxDoseTitle: "Journavx - Dose",
+    journavxDoseBody: "Time for your Journavx dose \u2014 check the app to see whether it's your loading or regular dose.",
     ibuFirstDoseTemplate: 'First dose time today<small>Schedules {doses} doses every {hrs} hours</small>',
     painMedTitle: "Pain Medication",
     painMedSub: "Take ONLY as needed \u2014 Do NOT drive",
@@ -1294,6 +1335,18 @@ var LANG = {
     antiInflamSub: "Ibuprofeno \u2014 Tomar con alimentos \u2014 Cada {hrs} horas, m\u00E1ximo {doses} dosis/d\u00EDa",
     ibuFrequencyLabel: "\u00BFCon qu\u00E9 frecuencia se toma?",
     ibuFrequencyOption: "Cada {hrs} horas ({doses}x/d\u00EDa)",
+    journavxTitle: "Journavx",
+    journavxSub: "Se puede tomar junto con sus otros medicamentos para el dolor",
+    journavxLabel: "\uD83D\uDC97 Journavx",
+    journavxPrescribedLabel: "\u00BFSe recet\u00F3 Journavx?",
+    journavxDoseInfo: "Primera dosis: 2 tabletas (100 mg) con el est\u00F3mago vac\u00EDo. Despu\u00E9s: 50 mg cada 12 horas mientras tenga dolor. Si se salta m\u00E1s de dos dosis seguidas, la siguiente dosis vuelve a ser la dosis inicial de 2 tabletas (100 mg).",
+    journavxFirstDoseTime: 'Hora de la primera dosis hoy<small>Programa 2 dosis cada 12 horas</small>',
+    journavxLoadingDoseLabel: "Dosis inicial \u2014 2 tabletas (100 mg)",
+    journavxRegularDoseLabel: "Dosis regular \u2014 50 mg",
+    journavxNextDoseLoading: "Siguiente dosis: Dosis inicial \u2014 2 tabletas (100 mg), con el est\u00F3mago vac\u00EDo.",
+    journavxNextDoseRegular: "Siguiente dosis: Dosis regular \u2014 50 mg.",
+    journavxDoseTitle: "Journavx - Dosis",
+    journavxDoseBody: "Hora de su dosis de Journavx \u2014 revise la aplicaci\u00F3n para ver si es su dosis inicial o regular.",
     ibuFirstDoseTemplate: 'Hora de la primera dosis hoy<small>Programa {doses} dosis cada {hrs} horas</small>',
     painMedTitle: "Medicamento para el Dolor",
     painMedSub: "Tomar SOLO cuando sea necesario \u2014 NO conducir",
@@ -1519,6 +1572,7 @@ function applyLang() {
   if (currentProcIndex >= 0) selectProcedure(currentProcIndex);
   updateSteroidUI();
   updateIbuUI();
+  updateJournavxUI();
   if (typeof onAbxSelect === 'function' && document.getElementById('abxSelect').value) onAbxSelect();
   if (typeof renderAll === 'function') renderAll();
   if (typeof updateNotifUI === 'function') {
@@ -1615,6 +1669,7 @@ function reloadForActiveProfile() {
   syncDayTabToSurgeryDate();
   updateSteroidUI();
   updateIbuUI();
+  updateJournavxUI();
   if (state.abxMed) onAbxSelect(); else renderAll();
   var notifBody = document.getElementById('notifBody');
   if (notifBody && notifBody.classList.contains('open')) { updateNotifUI(); updateTelegramUI(); }
@@ -1627,14 +1682,16 @@ const SECTIONS = ["pain","abx"]; // "ibu" handled separately below - its dose co
 // Standard 4mg 21-tablet Medrol Dose Pack: total tablets per day, tapering
 // over the same 6 days this app already tracks (Day of Surgery -> Day 5).
 const MEDROL_SCHEDULE = [6,5,4,3,2,1];
-const STEROID_MAX_DOSES = 6; // enough slots to cover Medrol's day-1 max
+const STEROID_MAX_DOSES = 6;
+const JOURNAVX_DOSES_PER_DAY = 2; // loading dose + first regular dose on day 1, then 2/day (q12h) ongoing // enough slots to cover Medrol's day-1 max
 let state = loadState();
 let currentDay = 0;
 function defaultState() {
   return {
     painMed:"", abxMed:"", abxDoses:2,
-    steroidType:"", dexDuration:0, ibuIntervalHrs:6,
+    steroidType:"", dexDuration:0, ibuIntervalHrs:6, journavxPrescribed:false,
     ibu:  Array.from({length:DAYS}, () => Array.from({length:DOSES}, () => ({taken:false,time:""}))),
+    journavx: Array.from({length:DAYS}, () => Array.from({length:JOURNAVX_DOSES_PER_DAY}, () => ({taken:false,time:""}))),
     pain: Array.from({length:DAYS}, () => Array.from({length:DOSES}, () => ({taken:false,time:""}))),
     abx:  Array.from({length:DAYS}, () => Array.from({length:DOSES}, () => ({taken:false,time:""}))),
     steroid: Array.from({length:DAYS}, () => Array.from({length:STEROID_MAX_DOSES}, () => ({taken:false,time:""})))
@@ -1647,6 +1704,10 @@ function normalizeState(s) {
   if (typeof s.steroidType === 'undefined') s.steroidType = "";
   if (typeof s.dexDuration === 'undefined') s.dexDuration = 0;
   if (typeof s.ibuIntervalHrs === 'undefined') { s.ibuIntervalHrs = (s.ibuStrength === 800) ? 8 : 6; delete s.ibuStrength; }
+  if (typeof s.journavxPrescribed === 'undefined') s.journavxPrescribed = false;
+  if (!s.journavx) {
+    s.journavx = Array.from({length:DAYS}, () => Array.from({length:JOURNAVX_DOSES_PER_DAY}, () => ({taken:false,time:""})));
+  }
   if (!s.steroid) {
     s.steroid = Array.from({length:DAYS}, () => Array.from({length:STEROID_MAX_DOSES}, () => ({taken:false,time:""})));
   }
@@ -1675,6 +1736,96 @@ var IBU_DOSES_BY_INTERVAL = {6:4, 8:3};
 function ibuNumDoses()     { return IBU_DOSES_BY_INTERVAL[state.ibuIntervalHrs] || 4; }
 function ibuIntervalHrs()  { return state.ibuIntervalHrs || 6; }
 function ibuIntervalMins() { return ibuIntervalHrs() * 60; }
+
+// Journavx: 2 doses/day once prescribed (loading dose, then 50mg q12h). A
+// gap of more than two skipped 12-hour doses resets the NEXT dose back to
+// a loading dose - see journavxDoseType() below, which is the only place
+// this rule lives so it can't drift out of sync across the app.
+var JOURNAVX_RESET_HOURS = 36; // > 2 skipped 12-hour doses
+
+function journavxDosesForDay(day) { return state.journavxPrescribed ? JOURNAVX_DOSES_PER_DAY : 0; }
+
+// Reconstructs a real timestamp for a given day-tab + "HH:MM" time, anchored
+// to the patient's surgery date - same anchor computePostOpDay() already
+// uses - so gaps can be measured correctly across day-tab boundaries, not
+// just within a single day's checklist.
+function journavxDayTimeToDate(day, timeStr) {
+  var ds;
+  try { ds = localStorage.getItem(pk('postopify_surgery_date')); } catch(e) { ds = null; }
+  if (!ds || !timeStr) return null;
+  var sp = ds.split('-'), tp = timeStr.split(':');
+  return new Date(parseInt(sp[0],10), parseInt(sp[1],10) - 1, parseInt(sp[2],10) + day, parseInt(tp[0],10), parseInt(tp[1],10));
+}
+
+function journavxSlotTimestamp(day, doseIdx) {
+  var entry = state.journavx[day] && state.journavx[day][doseIdx];
+  return entry && entry.time ? journavxDayTimeToDate(day, entry.time) : null;
+}
+
+// Walks every Journavx slot in chronological order up to and including
+// (day, doseIdx) and returns 'loading' or 'regular' for that slot. For an
+// already-taken dose this reconstructs history from its own recorded time;
+// for the next not-yet-taken slot it uses "now" as the reference point, so
+// the checklist always shows the correct label for the dose about to be
+// taken.
+function journavxDoseType(day, doseIdx) {
+  var lastTakenTs = null;
+  for (var d = 0; d <= day; d++) {
+    var maxI = (d === day) ? doseIdx : JOURNAVX_DOSES_PER_DAY - 1;
+    for (var i = 0; i <= maxI; i++) {
+      var isTarget = (d === day && i === doseIdx);
+      var entry = state.journavx[d] && state.journavx[d][i];
+      if (isTarget) {
+        var refTs = (entry && entry.taken) ? journavxSlotTimestamp(d, i) : new Date();
+        if (!lastTakenTs) return 'loading';
+        var hrs = refTs ? (refTs - lastTakenTs) / 3600000 : 0;
+        return hrs > JOURNAVX_RESET_HOURS ? 'loading' : 'regular';
+      }
+      if (entry && entry.taken) {
+        var ts = journavxSlotTimestamp(d, i);
+        if (ts) lastTakenTs = ts;
+      }
+    }
+  }
+  return 'loading';
+}
+
+function journavxNextPendingSlot() {
+  for (var d = currentDay; d < DAYS; d++) {
+    for (var i = 0; i < JOURNAVX_DOSES_PER_DAY; i++) {
+      var entry = state.journavx[d] && state.journavx[d][i];
+      if (!entry || !entry.taken) return { day: d, dose: i };
+    }
+  }
+  return null;
+}
+
+function updateJournavxNextDoseBox() {
+  var box = document.getElementById('journavxNextDoseBox');
+  if (!box) return;
+  if (!state.journavxPrescribed) { box.style.display = 'none'; return; }
+  var slot = journavxNextPendingSlot();
+  if (!slot) { box.style.display = 'none'; return; }
+  var type = journavxDoseType(slot.day, slot.dose);
+  box.textContent = t(type === 'loading' ? 'journavxNextDoseLoading' : 'journavxNextDoseRegular');
+  box.style.display = 'block';
+}
+
+function onJournavxPrescribedToggle() {
+  state.journavxPrescribed = document.getElementById('journavxPrescribedToggle').checked;
+  saveState();
+  updateJournavxUI();
+  renderAll();
+}
+
+function updateJournavxUI() {
+  var toggle = document.getElementById('journavxPrescribedToggle');
+  if (toggle) toggle.checked = !!state.journavxPrescribed;
+  var detail = document.getElementById('journavxDetail');
+  if (detail) detail.style.display = state.journavxPrescribed ? 'block' : 'none';
+  updateJournavxNextDoseBox();
+}
+
 
 function renderIbuFrequencyButtons() {
   var wrap = document.getElementById('ibuFrequencyBtns');
@@ -2335,6 +2486,13 @@ function updateSchedulePreviews() {
       var el2 = document.getElementById('painSchedule');
       if (el2) el2.classList.remove('visible');
     }
+
+    if (alarms.journavxOn && alarms.journavxTime && journavxDosesForDay(day) > 0) {
+      buildSchedulePreview('journavxSchedule', 'journavx', alarms.journavxTime, journavxDosesForDay(day), 720, day);
+    } else {
+      var elJ = document.getElementById('journavxSchedule');
+      if (elJ) elJ.classList.remove('visible');
+    }
     var abxFreq = parseInt(alarms.abxFreq || selectedAbxDoses || 2);
     var abxInterval = computeAbxInterval(alarms.abxTime || '08:00', abxFreq);
     if (alarms.abxOn && alarms.abxTime && abxFreq > 0) {
@@ -2350,6 +2508,7 @@ function renderDoses(containerId, section, day) {
   container.innerHTML = "";
   var dosesToShow = DOSES;
   if (section === "ibu") dosesToShow = ibuNumDoses();
+  if (section === "journavx") dosesToShow = journavxDosesForDay(day);
   if (section === "abx" && selectedAbxDoses > 0) dosesToShow = selectedAbxDoses;
   if (section === "steroid") dosesToShow = steroidDosesForDay(day);
   if (section === "steroid" && dosesToShow === 0) {
@@ -2365,10 +2524,14 @@ function renderDoses(containerId, section, day) {
     const row = document.createElement("div");
     row.className = "dose-row" + (taken?" taken":"");
     row.id = section+"-day"+day+"-dose"+d;
+    var doseLabelText = t('doseLabel') + ' ' + (d+1);
+    if (section === "journavx") {
+      doseLabelText = t(journavxDoseType(day, d) === 'loading' ? 'journavxLoadingDoseLabel' : 'journavxRegularDoseLabel');
+    }
     row.innerHTML = `
       <div class="dose-top" onclick="toggleDose('${section}',${day},${d})">
         <div class="dose-checkbox" data-help-key="doseCheckbox"><span class="dose-checkbox-check">&#10003;</span></div>
-        <div class="dose-label">${t('doseLabel')} ${d+1}</div>
+        <div class="dose-label">${doseLabelText}</div>
         ${taken&&time?`<div class="dose-taken-time" data-help-key="doseTakenTime">&#9200; ${to12hr(time)}</div>`:""}
       </div>
       <div class="dose-bottom">
@@ -2380,12 +2543,14 @@ function renderDoses(containerId, section, day) {
 }
 function renderAll() {
   renderDoses("ibuDoses","ibu",currentDay);
+  renderDoses("journavxDoses","journavx",currentDay);
   renderDoses("painDoses","pain",currentDay);
   renderDoses("abxDoses","abx",currentDay);
   renderDoses("steroidDoses","steroid",currentDay);
   updateProgress();
   updateDayTabBadges();
   updateSchedulePreviews();
+  updateJournavxNextDoseBox();
 }
 function toggleDose(section, day, dose) {
   const cur = state[section][day][dose];
@@ -2697,6 +2862,14 @@ function updateProgress() {
       if (state.ibu[d][i] && state.ibu[d][i].taken) taken++;
     }
   }
+  // Journavx only counts if it was actually toggled on.
+  for (let d=0; d<DAYS; d++) {
+    var jn = journavxDosesForDay(d);
+    for (let i=0; i<jn; i++) {
+      total++;
+      if (state.journavx[d][i] && state.journavx[d][i].taken) taken++;
+    }
+  }
   document.getElementById("progressBar").style.width=(taken/total*100)+"%";
 }
 function updateDayTabBadges() {
@@ -2707,6 +2880,8 @@ function updateDayTabBadges() {
     for (let i=0;i<n;i++) if (state.steroid[day][i] && state.steroid[day][i].taken) hasSome=true;
     var ibuN = ibuNumDoses();
     for (let i=0;i<ibuN;i++) if (state.ibu[day][i] && state.ibu[day][i].taken) hasSome=true;
+    var jn = journavxDosesForDay(day);
+    for (let i=0;i<jn;i++) if (state.journavx[day][i] && state.journavx[day][i].taken) hasSome=true;
     tab.classList.toggle("has-data",hasSome);
   });
 }
@@ -2733,6 +2908,7 @@ renderProcList();
 renderProfileMenu();
 updateSteroidUI();
 updateIbuUI();
+updateJournavxUI();
 if (state.abxMed) onAbxSelect();
 else renderAll();
 applyLang();
@@ -2742,7 +2918,7 @@ applyHelpModeUI();
 // Bump the trailing number for a same-day update, or start a new date at
 // -1 for the next day. Must match version.txt on the server exactly, or
 // every tab will think an update is available.
-var APP_VERSION = '7-22-2026-d1b73da';
+var APP_VERSION = '7-22-2026-40b34fb';
 (function(){ var f = document.getElementById('appVersionFooter'); if (f) f.textContent = 'Updated: ' + APP_VERSION; })();
 
 function checkForAppUpdate() {
@@ -2991,7 +3167,7 @@ function playAlarmSound() {
     if (dur !== 'until') { _alarmStopTimer = setTimeout(stopAlarmSound, parseInt(dur)*1000); }
   } catch(e) {}
 }
-function scheduleInAppAlarms(ibuOn, painOn, abxOn, ibuTime, painTime, abxTime, abxFreq, steroidOn, steroidTime) {
+function scheduleInAppAlarms(ibuOn, painOn, abxOn, ibuTime, painTime, abxTime, abxFreq, steroidOn, steroidTime, journavxOn, journavxTime) {
   var pid = activeProfileId();
   var pname = activeProfileName();
   clearInAppAlarms(pid);
@@ -3013,6 +3189,11 @@ function scheduleInAppAlarms(ibuOn, painOn, abxOn, ibuTime, painTime, abxTime, a
       pname+': '+t('abxDoseTitle')+' '+(k+1)+t('ofWord')+abxFreq, t('abxDoseBody'), pid+'-abx'+k); }
   if (steroidOn) { addTimer(msUntil(steroidTime),
       pname+': '+t('steroidDoseTitle'), steroidReminderLabel(), pid+'-steroid0'); }
+  if (journavxOn) {
+    var journavxN = journavxDosesForDay(currentDay), TWELVE = 12 * 60 * 60 * 1000;
+    for (var m=0;m<journavxN;m++) addTimer(msUntil(journavxTime)+m*TWELVE,
+      pname+': '+t('journavxDoseTitle')+' '+(m+1)+t('ofWord')+journavxN, t('journavxDoseBody'), pid+'-journavx'+m);
+  }
 }
 // Resolves the current practice's id for Telegram/Cloudflare sync, from the
 // dynamic multi-tenant config loaded by practice-config.js. Falls back to
@@ -3165,6 +3346,8 @@ function saveAlarms() {
   var painTime= document.getElementById('painTime').value;
   var abxTime = document.getElementById('abxTime').value;
   var abxFreq = parseInt(document.getElementById('abxFreq').value);
+  var journavxOn   = document.getElementById('journavxOn').checked;
+  var journavxTime = document.getElementById('journavxTime').value;
   var steroidDoses = steroidDosesForDay(currentDay);
   var steroidEl = document.getElementById('steroidOn');
   var steroidTimeEl = document.getElementById('steroidTime');
@@ -3179,7 +3362,8 @@ function saveAlarms() {
     localStorage.setItem(pk('postopify_alarms'), JSON.stringify({
       ibuTime:ibuTime, painTime:painTime, abxTime:abxTime,
       ibuOn:ibuOn, painOn:painOn, abxOn:abxOn, abxFreq:abxFreq,
-      steroidOn:steroidOn, steroidTime:steroidTime
+      steroidOn:steroidOn, steroidTime:steroidTime,
+      journavxOn:journavxOn, journavxTime:journavxTime
     }));
   } catch(e) {}
   // Sync schedule to Cloudflare for Telegram reminders (best-effort, non-blocking)
@@ -3195,6 +3379,7 @@ function saveAlarms() {
       var steroidDuration = (state.steroidType === 'medrol') ? MEDROL_SCHEDULE.length : (state.dexDuration || DAYS);
       scheduleData.steroid = { time: steroidTime, numDoses: 1, intervalMins: 0, label: steroidReminderLabel(), startDate: todayStr, durationDays: steroidDuration };
     }
+    if (journavxOn) scheduleData.journavx = { time: journavxTime, numDoses: journavxDosesForDay(currentDay), intervalMins: 720, label: 'Journavx', startDate: todayStr, durationDays: DAYS };
 
     fetch('https://postopify-schedule-sync.jacobcarrolldmd.workers.dev/', {
       method: 'POST',
@@ -3227,7 +3412,7 @@ function saveAlarms() {
     // patient's reminders (tagged with a different profile id) stay armed.
     if (swReg.active) swReg.active.postMessage({ type: 'CLEAR', profileId: pid });
     // Also set in-app timers as a reliable fallback while the app is open
-    scheduleInAppAlarms(ibuOn, painOn, abxOn, ibuTime, painTime, abxTime, abxFreq, steroidOn, steroidTime);
+    scheduleInAppAlarms(ibuOn, painOn, abxOn, ibuTime, painTime, abxTime, abxFreq, steroidOn, steroidTime, journavxOn, journavxTime);
     var abxInterval = computeAbxInterval(abxTime, abxFreq);
     if (ibuOn && swReg.active) {
       var ibuNSw = ibuNumDoses(), ibuIntervalMsSw = ibuIntervalHrs() * 60 * 60 * 1000;
@@ -3271,6 +3456,18 @@ function saveAlarms() {
         delay: msUntil(steroidTime),
         tag: pid + '-steroid0'
       });
+    }
+    if (journavxOn && swReg.active) {
+      var journavxNSw = journavxDosesForDay(currentDay), TWELVE_SW = 12 * 60 * 60 * 1000;
+      for (var m = 0; m < journavxNSw; m++) {
+        swReg.active.postMessage({
+          type:'SCHEDULE',
+          title: pname + ': ' + t('journavxDoseTitle') + ' ' + (m+1) + t('ofWord') + journavxNSw,
+          body: t('journavxDoseBody'),
+          delay: msUntil(journavxTime) + (m * TWELVE_SW),
+          tag: pid + '-journavx' + m
+        });
+      }
     }
     swReg.showNotification(tf('remindersConfirmTitle', {name: pname}), {
       body: t('remindersConfirmBody'),
