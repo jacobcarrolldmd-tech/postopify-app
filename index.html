@@ -135,9 +135,11 @@ body.help-mode .hs-card{overflow:visible;}
 .proc-btn-tx{flex:1;line-height:1.3;}
 .proc-btn-tx small{display:block;font-size:11.5px;font-weight:400;color:var(--gray);margin-top:2px;}
 .proc-btn.selected .proc-btn-tx small{color:rgba(255,255,255,.8);}
-.inst-panel{display:none;margin-top:14px;padding-top:14px;border-top:1.5px solid var(--border);}
+.inst-panel{display:none;margin-top:14px;padding-top:0;border-top:1.5px solid var(--border);}
 .inst-panel.visible{display:block;}
-.inst-title{font-size:15px;font-weight:700;color:var(--navy);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.inst-topbar{position:sticky;top:var(--topbar-h, 60px);z-index:20;background:white;display:flex;align-items:center;gap:10px;padding:12px 0 10px;margin-bottom:4px;border-bottom:1px solid var(--border);}
+.inst-back-top{flex-shrink:0;padding:8px 14px;border-radius:20px;background:var(--navy);color:white;border:none;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;}
+.inst-title-text{font-size:15px;font-weight:700;color:var(--navy);}
 .inst-body{font-size:14px;color:#333;line-height:1.7;white-space:pre-wrap;}
 .inst-body h1,.inst-body h2,.inst-body h3{font-size:15px;color:var(--navy);font-weight:700;margin:14px 0 6px;}
 .inst-body h1:first-child,.inst-body h2:first-child,.inst-body h3:first-child{margin-top:0;}
@@ -524,7 +526,10 @@ function continueClick() {
         <div class="proc-list" id="procList" data-help-key="procList"></div>
       </div>
       <div class="inst-panel" id="instPanel">
-        <div class="inst-title"><span>&#128221;</span><span id="instTitle" data-i18n="instructionsWord">Instructions</span></div>
+        <div class="inst-topbar">
+          <button class="inst-back-top" onclick="backToProcMenu()" aria-label="Back to procedures" data-i18n="backArrow">&#8592; Back</button>
+          <span class="inst-title-text" id="instTitle" data-i18n="instructionsWord">Instructions</span>
+        </div>
         <div id="instArea"></div>
         <button class="inst-back" onclick="backToProcMenu()" data-i18n="chooseDifferentProc">&#8592; Choose a different procedure</button>
       </div>
@@ -1486,6 +1491,7 @@ function applyLang() {
       if (typeof updateTelegramUI === 'function') updateTelegramUI();
     }
   }
+  if (typeof updateTopbarHeightVar === 'function') updateTopbarHeightVar();
 }
 function renderProfileMenu() {
   var pillName = document.getElementById('profilePillName');
@@ -1853,6 +1859,20 @@ function backToProcMenu() {
   document.getElementById('instPanel').classList.remove('visible');
   document.getElementById('procMenu').style.display = 'block';
 }
+
+// The header can be one line (landscape/wide screens) or wrap onto two
+// (narrow portrait phones, once the Help/EN-ES/Patient pills don't fit on
+// one row). The instructions panel's sticky back button needs to sit right
+// below it regardless of which state it's in, so this measures the header's
+// actual rendered height instead of assuming a fixed number.
+function updateTopbarHeightVar() {
+  var tb = document.querySelector('.topbar');
+  if (!tb) return;
+  var h = tb.getBoundingClientRect().height;
+  document.documentElement.style.setProperty('--topbar-h', h + 'px');
+}
+window.addEventListener('resize', updateTopbarHeightVar);
+window.addEventListener('orientationchange', updateTopbarHeightVar);
 // ── Patient Info ──────────────────────────────────────────────────────────────
 function savePatientInfo() {
   try {
@@ -2499,7 +2519,7 @@ applyHelpModeUI();
 // Bump the trailing number for a same-day update, or start a new date at
 // -1 for the next day. Must match version.txt on the server exactly, or
 // every tab will think an update is available.
-var APP_VERSION = '7-21-2026-17338a0';
+var APP_VERSION = '7-19-2026-1';
 (function(){ var f = document.getElementById('appVersionFooter'); if (f) f.textContent = 'Updated: ' + APP_VERSION; })();
 
 function checkForAppUpdate() {
