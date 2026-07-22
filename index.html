@@ -149,6 +149,8 @@ body.help-mode .hs-card{overflow:visible;}
 .inst-loading{font-size:13px;color:var(--gray);padding:12px 0;text-align:center;}
 .inst-error{font-size:13px;color:#7a3b0a;background:#fef3e8;border:1.5px solid var(--orange);border-radius:8px;padding:12px 14px;line-height:1.5;}
 .inst-back{margin-top:14px;padding:11px;width:100%;border-radius:8px;background:var(--gray-light,#f3f4f6);color:var(--navy);border:2px solid var(--border);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;}
+.also-needed-banner{background:var(--teal-light,#e3f2f4);border:1.5px solid var(--teal,#2E7D8A);border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:13px;color:var(--navy);display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.also-needed-banner button{background:var(--navy);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;}
 .select-input{width:100%;padding:13px 16px;border:2px solid var(--border);border-radius:var(--radius-sm);font-size:15px;font-family:inherit;font-weight:500;color:#1a1a2e;background:white;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath fill='%236b7280' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;cursor:pointer;}
 .select-input:focus{outline:none;border-color:var(--navy);}
 .warning-box{background:var(--orange-light);border:1.5px solid var(--orange);border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;color:#7a3b0a;line-height:1.5;margin-top:10px;}
@@ -530,6 +532,7 @@ function continueClick() {
           <button class="inst-back-top" onclick="backToProcMenu()" aria-label="Back to procedures" data-i18n="backArrow">&#8592; Back</button>
           <span class="inst-title-text" id="instTitle" data-i18n="instructionsWord">Instructions</span>
         </div>
+        <div id="alsoNeededBanner" class="also-needed-banner" style="display:none;"></div>
         <div id="instArea"></div>
         <button class="inst-back" onclick="backToProcMenu()" data-i18n="chooseDifferentProc">&#8592; Choose a different procedure</button>
       </div>
@@ -996,6 +999,8 @@ var LANG = {
     surgeryDateLabel: "Date of Surgery",
     surgeryDateNote: "Enter your surgery date to unlock dose reminders and track your post-op day.",
     postopApptLabel: "Post-Op Appointment",
+    alsoNeededPrefix: "You may also need:",
+    alsoNeededViewBtn: "View",
     postopApptNote: "Adds just the date and time to your calendar \u2014 no names or details included. You can add your own title once it's there.",
     addToGoogleCalendarBtn: "\uD83D\uDCC5 Google Calendar",
     addToIcsCalendarBtn: "\uD83D\uDCC5 Apple / Outlook",
@@ -1197,6 +1202,8 @@ var LANG = {
     surgeryDateLabel: "Fecha de la Cirug\u00EDa",
     surgeryDateNote: "Ingrese la fecha de su cirug\u00EDa para desbloquear los recordatorios de dosis y hacer seguimiento de su d\u00EDa post-operatorio.",
     postopApptLabel: "Cita Post-Operatoria",
+    alsoNeededPrefix: "Tambi\u00E9n podr\u00EDa necesitar:",
+    alsoNeededViewBtn: "Ver",
     postopApptNote: "Agrega solo la fecha y hora a su calendario \u2014 sin nombres ni detalles. Puede agregar su propio t\u00EDtulo una vez que est\u00E9 ah\u00ED.",
     addToGoogleCalendarBtn: "\uD83D\uDCC5 Google Calendar",
     addToIcsCalendarBtn: "\uD83D\uDCC5 Apple / Outlook",
@@ -1679,17 +1686,19 @@ var loadedProcedures = [];   // filled from the folder at load time
 //                           a dynamic Google Drive folder, not a fixed list
 //   ketorolacTime=HH:MM     24-hour time
 var pendingProcParam = null;
+var pendingProcParam2 = null;
 
 function applyKickstartParams() {
   var params;
   try { params = new URLSearchParams(window.location.search); } catch(e) { return; }
   var surgDate = params.get('surgDate');
   var procName = params.get('proc');
+  var procName2 = params.get('proc2');
   var ketoTime = params.get('ketorolacTime');
   var telegramFlag = params.get('telegram');
   var apptDate = params.get('apptDate');
   var apptTime = params.get('apptTime');
-  if (!surgDate && !procName && !ketoTime && !telegramFlag && !apptDate) return;
+  if (!surgDate && !procName && !procName2 && !ketoTime && !telegramFlag && !apptDate) return;
 
   if (surgDate && /^\d{4}-\d{2}-\d{2}$/.test(surgDate)) {
     try { localStorage.setItem(pk('postopify_surgery_date'), surgDate); } catch(e) {}
@@ -1697,6 +1706,9 @@ function applyKickstartParams() {
 
   if (procName) {
     pendingProcParam = procName;
+  }
+  if (procName2) {
+    pendingProcParam2 = procName2;
   }
 
   if (ketoTime && /^([01]\d|2[0-3]):[0-5]\d$/.test(ketoTime)) {
@@ -1751,9 +1763,8 @@ function handleKickstartTelegramTap() {
 // Procedures load asynchronously from Google Drive, so this runs once the
 // list is actually available (called from renderProcButtons()) rather than
 // right when the kickstart params are first read.
-function tryPreselectProcedure() {
-  if (!pendingProcParam || !loadedProcedures || !loadedProcedures.length) return;
-  var target = pendingProcParam.toLowerCase();
+function findProcIndexByName(target) {
+  target = target.toLowerCase();
   var idx = loadedProcedures.findIndex(function(p) {
     return (p.name && p.name.toLowerCase() === target) ||
            (p.esName && p.esName.toLowerCase() === target);
@@ -1764,8 +1775,48 @@ function tryPreselectProcedure() {
              (p.esName && p.esName.toLowerCase().indexOf(target) !== -1);
     });
   }
-  if (idx !== -1) selectProcedure(idx);
+  return idx;
+}
+
+// Shows a small banner inside the currently-open procedure's instructions,
+// pointing at a second procedure that was also flagged via kickstart (e.g.
+// an extraction AND a sinus exposure on the same visit). Tapping it jumps
+// straight to that procedure's instructions instead of making the parent
+// hunt through "Choose a different procedure" on their own.
+function showAlsoNeededBanner(idx2) {
+  var banner = document.getElementById('alsoNeededBanner');
+  if (!banner) return;
+  var proc2 = loadedProcedures[idx2];
+  if (!proc2) return;
+  banner.innerHTML = '';
+  var text = document.createElement('span');
+  text.textContent = t('alsoNeededPrefix') + ' ' + procDisplayName(proc2);
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.textContent = t('alsoNeededViewBtn');
+  btn.onclick = function() { selectProcedure(idx2); };
+  banner.appendChild(text);
+  banner.appendChild(btn);
+  banner.style.display = 'flex';
+}
+
+function tryPreselectProcedure() {
+  if (!loadedProcedures || !loadedProcedures.length) return;
+
+  var idx2 = pendingProcParam2 ? findProcIndexByName(pendingProcParam2) : -1;
+  var idx1 = pendingProcParam ? findProcIndexByName(pendingProcParam) : -1;
+
+  if (idx1 !== -1) {
+    selectProcedure(idx1);
+    if (idx2 !== -1 && idx2 !== idx1) showAlsoNeededBanner(idx2);
+  } else if (idx2 !== -1) {
+    // The first procedure name didn't match anything, but the second one
+    // did - open that instead of showing nothing at all.
+    selectProcedure(idx2);
+  }
+
   pendingProcParam = null;
+  pendingProcParam2 = null;
 }
 var instrCache = {};         // cache doc HTML per session
 var currentProcIndex = -1;   // tracks which procedure panel is open, so we can
@@ -1829,6 +1880,8 @@ function selectProcedure(i) {
   document.getElementById('procMenu').style.display = 'none';
   document.getElementById('instPanel').classList.add('visible');
   document.getElementById('instTitle').textContent = procDisplayName(proc);
+  var bannerEl = document.getElementById('alsoNeededBanner');
+  if (bannerEl) bannerEl.style.display = 'none';
   var area = document.getElementById('instArea');
   // Pick the Spanish doc if the patient has Spanish selected AND this
   // procedure has one uploaded; otherwise fall back to the English doc.
@@ -2519,7 +2572,7 @@ applyHelpModeUI();
 // Bump the trailing number for a same-day update, or start a new date at
 // -1 for the next day. Must match version.txt on the server exactly, or
 // every tab will think an update is available.
-var APP_VERSION = '7-22-2026-3695d2a';
+var APP_VERSION = '7-19-2026-1';
 (function(){ var f = document.getElementById('appVersionFooter'); if (f) f.textContent = 'Updated: ' + APP_VERSION; })();
 
 function checkForAppUpdate() {
