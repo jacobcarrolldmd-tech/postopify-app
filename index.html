@@ -1291,6 +1291,7 @@ var LANG = {
     deleteProfileConfirm: 'Delete "{name}" and all of their tracked doses? This cannot be undone.',
     resetConfirm: "Clear all patient info, surgery date, alarm settings, and medication logs to start fresh for a new procedure?",
     defaultPatientName: "Patient 1",
+    newPatientDefaultName: "New Patient",
     notifBrowserUnsupported: "\u26A0\uFE0F Your browser does not support notifications. On iPhone, open in Safari and add to Home Screen first.",
     notifIphoneNeedHS: "\uF8FF You are using an iPhone. Please follow the steps above to add this app to your Home Screen first, then return here to enable reminders.",
     notifGranted: "\u2714 Notifications enabled! Set your reminder times below.",
@@ -1527,6 +1528,7 @@ var LANG = {
     deleteProfileConfirm: '\u00BFEliminar a "{name}" y todas sus dosis registradas? Esto no se puede deshacer.',
     resetConfirm: "\u00BFBorrar toda la informaci\u00F3n del paciente, la fecha de cirug\u00EDa, la configuraci\u00F3n de alarmas y los registros de medicamentos para comenzar de nuevo con un nuevo procedimiento?",
     defaultPatientName: "Paciente 1",
+    newPatientDefaultName: "Nuevo paciente",
     notifBrowserUnsupported: "\u26A0\uFE0F Su navegador no admite notificaciones. En iPhone, abra en Safari y agregue a la Pantalla de Inicio primero.",
     notifIphoneNeedHS: "\uF8FF Est\u00E1 usando un iPhone. Siga los pasos anteriores para agregar esta aplicaci\u00F3n a su Pantalla de Inicio primero y luego regrese aqu\u00ED para activar los recordatorios.",
     notifGranted: "\u2714 \u00A1Notificaciones activadas! Configure sus horarios de recordatorio abajo.",
@@ -1752,6 +1754,25 @@ function addProfilePrompt() {
   if (!name || !name.trim()) return;
   var id = 'p_' + Date.now().toString(36) + Math.floor(Math.random()*1000);
   profileReg.list.push({ id: id, name: name.trim(), seq: profileReg.nextSeq++ });
+  profileReg.active = id;
+  saveProfileRegistry(profileReg);
+  reloadForActiveProfile();
+}
+
+// Headless counterpart to addProfilePrompt(), used only by the kickstart
+// "second patient in this visit" flow. addProfilePrompt()'s native
+// prompt() dialog would pop up unexpectedly the instant a sibling's
+// kickstart link loads - before anything else on the page even renders -
+// and if a parent dismissed or clicked past it without understanding why
+// an unexplained popup appeared, addProfilePrompt() does nothing at all,
+// silently breaking the whole second-child flow. This creates the
+// profile the exact same way, minus the dialog, with a generic
+// placeholder name; the parent can rename it via the profile menu's
+// pencil icon same as any other profile, same as they'd need to fill in
+// Patient Information regardless - no name ever travels through the URL.
+function createKickstartProfile() {
+  var id = 'p_' + Date.now().toString(36) + Math.floor(Math.random()*1000);
+  profileReg.list.push({ id: id, name: t('newPatientDefaultName'), seq: profileReg.nextSeq++ });
   profileReg.active = id;
   saveProfileRegistry(profileReg);
   reloadForActiveProfile();
@@ -2245,6 +2266,7 @@ var pendingProcParam2 = null;
 function applyKickstartParams() {
   var params;
   try { params = new URLSearchParams(window.location.search); } catch(e) { return; }
+  var newProfileFlag = params.get('newProfile');
   var surgDate = params.get('surgDate');
   var procName = params.get('proc');
   var procName2 = params.get('proc2');
@@ -2253,7 +2275,16 @@ function applyKickstartParams() {
   var apptDate = params.get('apptDate');
   var apptTime = params.get('apptTime');
   var welcomeMsg = params.get('msg');
-  if (!surgDate && !procName && !procName2 && !ketoTime && !telegramFlag && !apptDate && !welcomeMsg) return;
+  if (!surgDate && !procName && !procName2 && !ketoTime && !telegramFlag && !apptDate && !welcomeMsg && !newProfileFlag) return;
+
+  // Must run before every other line below - pk() resolves against
+  // whichever profile is active at the moment each line actually runs, so
+  // switching profiles first guarantees the surgery date, ibu seed,
+  // welcome message, etc. all land in the NEW sibling's profile, not
+  // whatever was already open on the phone.
+  if (newProfileFlag === '1') {
+    createKickstartProfile();
+  }
 
   if (surgDate && /^\d{4}-\d{2}-\d{2}$/.test(surgDate)) {
     try { localStorage.setItem(pk('postopify_surgery_date'), surgDate); } catch(e) {}
@@ -3272,7 +3303,7 @@ applyHelpModeUI();
 // Bump the trailing number for a same-day update, or start a new date at
 // -1 for the next day. Must match version.txt on the server exactly, or
 // every tab will think an update is available.
-var APP_VERSION = '7-23-2026-8b22f10';
+var APP_VERSION = '7-22-2026-40b34fb';
 (function(){ var f = document.getElementById('appVersionFooter'); if (f) f.textContent = 'Updated: ' + APP_VERSION; })();
 
 function checkForAppUpdate() {
