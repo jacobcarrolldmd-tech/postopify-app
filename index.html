@@ -645,32 +645,41 @@ function continueClick() {
             <button type="button" class="reminders-howto-help-btn" onclick="turnOnHelpModeAndShow('notifSection')" data-i18n="howtoHelpBtn">&#10067; Turn on Help Mode for more</button>
           </div>
         </div>
+        <div id="ibuAlarmRow">
         <h4>&#129138; <span id="ibuprofenLabelText">Ibuprofen</span></h4>
         <div class="alarm-row">
           <div class="alarm-label" id="ibuFirstDoseLabel">First dose time today<small>Schedules 4 doses every 6 hours</small></div>
           <input type="time" class="alarm-time-input" id="ibuTime" value="08:00">
           <label class="alarm-toggle"><input type="checkbox" id="ibuOn"><span class="alarm-slider"></span></label>
         </div>
+        </div>
+        <div id="journavxAlarmRow" style="display:none;">
         <h4 style="margin-top:14px;" data-i18n="journavxLabel">&#128137; Journavx</h4>
         <div class="alarm-row">
           <div class="alarm-label" data-i18n-html="journavxFirstDoseTime">First dose time today<small>Schedules 2 doses every 12 hours</small></div>
           <input type="time" class="alarm-time-input" id="journavxTime" value="08:00">
           <label class="alarm-toggle"><input type="checkbox" id="journavxOn"><span class="alarm-slider"></span></label>
         </div>
+        </div>
 
+        <div id="tylenolAlarmRow" style="display:none;">
         <h4 style="margin-top:14px;" data-i18n="tylenolLabel">&#128138; Tylenol</h4>
         <div class="alarm-row">
           <div class="alarm-label" id="tylenolFirstDoseLabel">First dose time today<small>Schedules 4 doses every 6 hours</small></div>
           <input type="time" class="alarm-time-input" id="tylenolTime" value="08:00">
           <label class="alarm-toggle"><input type="checkbox" id="tylenolOn"><span class="alarm-slider"></span></label>
         </div>
+        </div>
 
+        <div id="painAlarmRow" style="display:none;">
         <h4 style="margin-top:14px;" data-i18n="painMedLabel">&#128308; Pain Medication</h4>
         <div class="alarm-row">
           <div class="alarm-label" data-i18n-html="firstDoseTime4x6">First dose time today<small>Schedules 4 doses every 6 hours</small></div>
           <input type="time" class="alarm-time-input" id="painTime" value="08:00">
           <label class="alarm-toggle"><input type="checkbox" id="painOn"><span class="alarm-slider"></span></label>
         </div>
+        </div>
+        <div id="abxAlarmRow" style="display:none;">
         <h4 style="margin-top:14px;" data-i18n="antibioticLabel">&#128994; Antibiotic</h4>
         <div class="alarm-row">
           <div class="alarm-label" data-i18n-html="abxGeneralTime">General time to take your antibiotic<small>Doses are spaced during the day \u2014 never after 9:30 PM</small></div>
@@ -685,6 +694,7 @@ function continueClick() {
             <option value="3">3x</option>
             <option value="4">4x</option>
           </select>
+        </div>
         </div>
 
         <div id="steroidAlarmRow" style="display:none;">
@@ -2727,6 +2737,7 @@ function syncDayTabToSurgeryDate() {
   document.querySelectorAll(".day-tab").forEach(function(t, i) { t.classList.toggle("active", i === currentDay); });
   if (typeof renderAll === 'function') renderAll();
   if (typeof updateSteroidAlarmRow === 'function') updateSteroidAlarmRow();
+  if (typeof updateMedAlarmRowVisibility === 'function') updateMedAlarmRowVisibility();
 }
 function updateTopbarName() {
   try {
@@ -2866,6 +2877,7 @@ function renderAll() {
   updateDayTabBadges();
   updateSchedulePreviews();
   updateJournavxNextDoseBox();
+  if (typeof updateMedAlarmRowVisibility === 'function') updateMedAlarmRowVisibility();
 }
 function toggleDose(section, day, dose) {
   const cur = state[section][day][dose];
@@ -3151,6 +3163,7 @@ function updateSteroidUI() {
   if (dexSel)    dexSel.style.display    = (state.steroidType === "dex")    ? "block" : "none";
   if (state.steroidType === "dex") renderDexDurationButtons();
   updateSteroidAlarmRow();
+  updateMedAlarmRowVisibility();
 }
 function updateProgress() {
   let taken=0, total=0;
@@ -3226,6 +3239,7 @@ document.getElementById("dayTabs").addEventListener("click", e => {
     document.querySelectorAll(".day-tab").forEach((t,i)=>t.classList.toggle("active",i===currentDay));
     renderAll();
     updateSteroidAlarmRow();
+    updateMedAlarmRowVisibility();
     window.scrollTo({top:0,behavior:"smooth"});
   }
 });
@@ -3258,7 +3272,7 @@ applyHelpModeUI();
 // Bump the trailing number for a same-day update, or start a new date at
 // -1 for the next day. Must match version.txt on the server exactly, or
 // every tab will think an update is available.
-var APP_VERSION = '7-22-2026-0cadc79';
+var APP_VERSION = '7-22-2026-40b34fb';
 (function(){ var f = document.getElementById('appVersionFooter'); if (f) f.textContent = 'Updated: ' + APP_VERSION; })();
 
 function checkForAppUpdate() {
@@ -3313,7 +3327,7 @@ function toggleNotif() {
   var arrow = document.getElementById('notifArrow');
   var open  = body.classList.toggle('open');
   arrow.classList.toggle('open', open);
-  if (open) { updateNotifUI(); updateTelegramUI(); updateSteroidAlarmRow(); }
+  if (open) { updateNotifUI(); updateTelegramUI(); updateSteroidAlarmRow(); updateMedAlarmRowVisibility(); }
 }
 function isIphone() {
   return /iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -3604,6 +3618,30 @@ function steroidReminderLabel() {
 // and the tablet count for whichever day tab is currently active — Medrol
 // tapers by day, so "today's" count depends on which day the patient has
 // open, same as the manual dose-logging above it.
+
+// Keeps the reminders-panel rows in sync with each medication's own
+// tracking-card toggle - if a medication is off there, its alarm row here
+// is hidden too, and its switch is forced off so a stale phone alarm can't
+// keep firing for something the patient isn't taking anymore.
+function updateMedAlarmRowVisibility() {
+  var specs = [
+    { row: 'ibuAlarmRow',      on: 'ibuOn',      visible: ibuNumDoses() > 0 },
+    { row: 'journavxAlarmRow', on: 'journavxOn', visible: journavxDosesForDay(currentDay) > 0 },
+    { row: 'tylenolAlarmRow',  on: 'tylenolOn',  visible: tylenolDosesForDay(currentDay) > 0 },
+    { row: 'painAlarmRow',     on: 'painOn',     visible: painDosesForDay(currentDay) > 0 },
+    { row: 'abxAlarmRow',      on: 'abxOn',      visible: abxDosesForDay(currentDay) > 0 }
+  ];
+  specs.forEach(function(spec) {
+    var row = document.getElementById(spec.row);
+    if (!row) return;
+    row.style.display = spec.visible ? '' : 'none';
+    if (!spec.visible) {
+      var toggle = document.getElementById(spec.on);
+      if (toggle && toggle.checked) toggle.checked = false;
+    }
+  });
+}
+
 function updateSteroidAlarmRow() {
   var row = document.getElementById("steroidAlarmRow");
   var sub = document.getElementById("steroidAlarmSub");
