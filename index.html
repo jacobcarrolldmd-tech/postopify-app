@@ -2244,7 +2244,7 @@ function to12hr(timeStr) {
 //
 // SETUP (one time): paste your Apps Script Web App URL below.
 //
-var INSTRUCTIONS_API = "https://script.google.com/macros/s/AKfycbyW5sgcGa5aK9LWh_5bDVAq8aenM1Y4G2Cf5CmnPXb3TsVoDo8FQWLhrT-SgME0r5eh/exec";
+var INSTRUCTIONS_API = "https://script.google.com/macros/s/AKfycbza80m6HfLTupH_CPHJ1QHv-iygozQgERmu3VtmY4GRA0fjc522RKtVOnWvqyqI-AVy/exec";
 var DEFAULT_PROC_ICON = "\uD83E\uDDB7"; // tooth icon for all procedures
 var loadedProcedures = [];   // filled from the folder at load time
 
@@ -2498,7 +2498,7 @@ function renderProcList() {
     return;
   }
   list.innerHTML = '<div class="inst-loading">' + t('loadingProcedures') + '</div>';
-  fetch(INSTRUCTIONS_API + '?action=list&practice=' + encodeURIComponent(getPracticeId()))
+  fetch(INSTRUCTIONS_API + '?action=list&practice_id=' + encodeURIComponent(getPracticeId()))
     .then(function(r){ if(!r.ok) throw new Error('http'); return r.json(); })
     .then(function(data){
       loadedProcedures = (data && data.procedures) || [];
@@ -2546,7 +2546,7 @@ function selectProcedure(i) {
     return;
   }
   area.innerHTML = '<div class="inst-loading">' + t('loadingInstructions') + '</div>';
-  fetch(INSTRUCTIONS_API + '?action=doc&id=' + encodeURIComponent(docId) + '&practice=' + encodeURIComponent(getPracticeId()))
+  fetch(INSTRUCTIONS_API + '?action=doc&id=' + encodeURIComponent(docId) + '&practice_id=' + encodeURIComponent(getPracticeId()))
     .then(function(r){ if(!r.ok) throw new Error('http'); return r.json(); })
     .then(function(data){
       if (data && data.html) {
