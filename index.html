@@ -3799,9 +3799,22 @@ function saveAlarms() {
     if (journavxOn) scheduleData.journavx = { time: journavxTime, numDoses: journavxDosesForDay(currentDay), intervalMins: 720, label: 'Journavx', startDate: todayStr, durationDays: DAYS };
     if (tylenolOn) scheduleData.tylenol = { time: tylenolTime, numDoses: tylenolDosesForDay(currentDay), intervalMins: tylenolIntervalMins(), label: 'Tylenol', startDate: todayStr, durationDays: DAYS };
 
+    // Each stored schedule is owned by the device that first wrote it. The first
+    // write mints a token server-side; every later write to the same record must
+    // present it. Without this, anyone who guessed a practice + patientId pair
+    // could overwrite a patient's schedule - and reminders are generated from it.
+    // Safe to ship before the Worker is updated: an older Worker ignores the
+    // header and returns no token, so nothing is stored and nothing breaks.
+    var syncTokenKey = 'postopify_sync_token:' + practiceId + ':' + pid;
+    var syncToken = null;
+    try { syncToken = localStorage.getItem(syncTokenKey); } catch (e) {}
+
+    var syncHeaders = { 'Content-Type': 'application/json' };
+    if (syncToken) syncHeaders['X-Postopify-Token'] = syncToken;
+
     fetch('https://postopify-schedule-sync.jacobcarrolldmd.workers.dev/', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: syncHeaders,
       body: JSON.stringify({
         practice: practiceId,
         patientId: pid,
@@ -3810,6 +3823,19 @@ function saveAlarms() {
         profileSeq: activeProfileSeq(),
         schedule: scheduleData
       })
+    }).then(function(res) {
+      if (res.status === 403) {
+        // This device's token is missing or stale, so the server kept the
+        // existing record rather than letting us overwrite it. Reminders
+        // already scheduled on the phone are unaffected.
+        console.warn('Schedule sync rejected: this device does not own that record.');
+        return null;
+      }
+      return res.json().catch(function() { return null; });
+    }).then(function(data) {
+      if (data && data.token) {
+        try { localStorage.setItem(syncTokenKey, data.token); } catch (e) {}
+      }
     }).catch(function(e) { console.warn('Schedule sync failed (non-critical):', e); });
   } catch (e) {
     console.warn('Schedule sync error (non-critical):', e);
