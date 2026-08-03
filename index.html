@@ -1749,10 +1749,31 @@ function switchProfile(id) {
   reloadForActiveProfile();
   document.getElementById('profileMenu').classList.remove('open');
 }
+// Profile ids double as the server-side patientId. The previous format was
+// 'p_' + Date.now() + a 3-digit random number: roughly a thousand possibilities
+// per millisecond, and it embedded the moment the profile was created. Anyone
+// who knew roughly when a patient was set up could enumerate valid keys. This
+// uses 128 bits of cryptographic randomness and leaks no timestamp.
+function randomProfileId() {
+  try {
+    if (window.crypto && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID().replace(/-/g, '');
+    }
+    var bytes = new Uint8Array(16);
+    window.crypto.getRandomValues(bytes);
+    return Array.prototype.map.call(bytes, function (b) {
+      return ('0' + b.toString(16)).slice(-2);
+    }).join('');
+  } catch (e) {
+    // Only reached on a browser without Web Crypto; still far better than before.
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 12);
+  }
+}
+
 function addProfilePrompt() {
   var name = prompt(t('newProfilePrompt'));
   if (!name || !name.trim()) return;
-  var id = 'p_' + Date.now().toString(36) + Math.floor(Math.random()*1000);
+  var id = 'p_' + randomProfileId();
   profileReg.list.push({ id: id, name: name.trim(), seq: profileReg.nextSeq++ });
   profileReg.active = id;
   saveProfileRegistry(profileReg);
@@ -1771,7 +1792,7 @@ function addProfilePrompt() {
 // pencil icon same as any other profile, same as they'd need to fill in
 // Patient Information regardless - no name ever travels through the URL.
 function createKickstartProfile() {
-  var id = 'p_' + Date.now().toString(36) + Math.floor(Math.random()*1000);
+  var id = 'p_' + randomProfileId();
   profileReg.list.push({ id: id, name: t('newPatientDefaultName'), seq: profileReg.nextSeq++ });
   profileReg.active = id;
   saveProfileRegistry(profileReg);
@@ -3303,7 +3324,7 @@ applyHelpModeUI();
 // Bump the trailing number for a same-day update, or start a new date at
 // -1 for the next day. Must match version.txt on the server exactly, or
 // every tab will think an update is available.
-var APP_VERSION = '8-3-2026-9d3a65e';
+var APP_VERSION = '7-31-2026-3fcadb0';
 (function(){ var f = document.getElementById('appVersionFooter'); if (f) f.textContent = 'Updated: ' + APP_VERSION; })();
 
 function checkForAppUpdate() {
@@ -3799,12 +3820,10 @@ function saveAlarms() {
     if (journavxOn) scheduleData.journavx = { time: journavxTime, numDoses: journavxDosesForDay(currentDay), intervalMins: 720, label: 'Journavx', startDate: todayStr, durationDays: DAYS };
     if (tylenolOn) scheduleData.tylenol = { time: tylenolTime, numDoses: tylenolDosesForDay(currentDay), intervalMins: tylenolIntervalMins(), label: 'Tylenol', startDate: todayStr, durationDays: DAYS };
 
-    // Each stored schedule is owned by the device that first wrote it. The first
-    // write mints a token server-side; every later write to the same record must
-    // present it. Without this, anyone who guessed a practice + patientId pair
-    // could overwrite a patient's schedule - and reminders are generated from it.
-    // Safe to ship before the Worker is updated: an older Worker ignores the
-    // header and returns no token, so nothing is stored and nothing breaks.
+    // Each stored schedule is owned by the device that first wrote it: the first
+    // write mints a token server-side, and later writes must present it. Without
+    // this, anyone who guessed a practice + patientId could overwrite a patient's
+    // schedule - and reminders are generated from that record.
     var syncTokenKey = 'postopify_sync_token:' + practiceId + ':' + pid;
     var syncToken = null;
     try { syncToken = localStorage.getItem(syncTokenKey); } catch (e) {}
@@ -3825,9 +3844,6 @@ function saveAlarms() {
       })
     }).then(function(res) {
       if (res.status === 403) {
-        // This device's token is missing or stale, so the server kept the
-        // existing record rather than letting us overwrite it. Reminders
-        // already scheduled on the phone are unaffected.
         console.warn('Schedule sync rejected: this device does not own that record.');
         return null;
       }
