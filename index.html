@@ -152,18 +152,17 @@ body.help-mode .hs-card{overflow:visible;}
 .proc-btn.selected .proc-btn-tx small{color:rgba(255,255,255,.8);}
 .inst-panel{display:none;margin-top:14px;padding-top:0;border-top:1.5px solid var(--border);}
 .inst-panel.visible{display:block;}
-.inst-panel{scroll-margin-top:calc(var(--topbar-h, 60px) + 72px);}
-/* On narrow screens the Back/title bar is NOT sticky. Sticky positioning
-   behaves differently on mobile here - html/body carry overflow-x:hidden,
-   which makes them scroll containers, so the bar detached from the header
-   and floated down over the first lines of the document (the practice name
-   and surgeon). Letting it scroll with the content removes that whole class
-   of problem; the "Choose a different procedure" button at the foot of the
-   document still gets patients back. */
+.inst-topbar{position:sticky;top:var(--topbar-h, 60px);z-index:20;background:white;display:flex;align-items:center;gap:10px;padding:12px 0 10px;margin-bottom:4px;border-bottom:1px solid var(--border);}
+/* On narrow screens the Back/title bar is deliberately NOT sticky.
+   html and body carry overflow-x:hidden, which makes them scroll containers,
+   and mobile browsers then let a sticky child detach and hover over the text
+   below it - covering the practice name at the top of every document.
+   Letting the bar scroll with the content removes that entirely.
+   NOTE: this block must stay AFTER the .inst-topbar sticky rule above -
+   same specificity, so source order decides the winner. */
 @media (max-width: 860px){
   .inst-topbar{position:static; top:auto;}
 }
-.inst-topbar{position:sticky;top:var(--topbar-h, 60px);z-index:20;background:white;display:flex;align-items:center;gap:10px;padding:12px 0 10px;margin-bottom:4px;border-bottom:1px solid var(--border);}
 .inst-back-top{flex-shrink:0;padding:8px 14px;border-radius:20px;background:var(--navy);color:white;border:none;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;}
 .inst-title-text{font-size:15px;font-weight:700;color:var(--navy);}
 .inst-body{font-size:14px;color:#333;line-height:1.7;white-space:pre-wrap;}
@@ -2291,8 +2290,6 @@ var pendingProcParam2 = null;
 
 function applyKickstartParams() {
   var params;
-  // Fragment first - browsers never transmit it to a server. Query string is
-  // still accepted so links issued before this change keep working.
   try {
     var kickstartHash = (window.location.hash || '').replace(/^#/, '');
     params = new URLSearchParams(kickstartHash || window.location.search);
@@ -2476,41 +2473,38 @@ function showAlsoNeededBanner(idx2) {
 // selectProcedure() actually take effect before we measure where to
 // scroll. Manual taps (normal selectProcedure() calls) are untouched -
 // this only runs on the kickstart-triggered path.
-function scrollInstPanelIntoView() {
-  // scrollIntoView({block:'start'}) aligns with the top of the VIEWPORT, but
-  // sticky bars live there, so the opening lines of the document ended up
-  // underneath them. Measure whatever is actually sticky and stop short of it.
-  var passes = 0;
+function isStickyEl(el) {
+  try { return !!el && getComputedStyle(el).position === 'sticky'; } catch (e) { return false; }
+}
 
-  function isSticky(el) {
-    try { return getComputedStyle(el).position === 'sticky'; } catch (e) { return false; }
-  }
-
-  function stickyOffset(panel) {
-    var total = 0;
-    var topbar = document.querySelector('.topbar');
-    if (topbar && isSticky(topbar)) total += topbar.getBoundingClientRect().height;
-    var banner = document.getElementById('kickstartTelegramBanner');
-    if (banner && banner.offsetHeight && isSticky(banner)) total += banner.getBoundingClientRect().height;
-    // Below 860px this bar is static (see CSS), so it must NOT be counted -
-    // it scrolls away with the content instead of hovering over it.
+// Total height of whatever is actually pinned to the top of the viewport right
+// now. Anything static scrolls away with the content and must not be counted.
+function stickyTopOffset(panel) {
+  var total = 0;
+  var topbar = document.querySelector('.topbar');
+  if (isStickyEl(topbar)) total += topbar.getBoundingClientRect().height;
+  var banner = document.getElementById('kickstartTelegramBanner');
+  if (banner && banner.offsetHeight && isStickyEl(banner)) total += banner.getBoundingClientRect().height;
+  if (panel) {
     var instBar = panel.querySelector('.inst-topbar');
-    if (instBar && isSticky(instBar)) total += instBar.getBoundingClientRect().height;
-    return total;
+    if (isStickyEl(instBar)) total += instBar.getBoundingClientRect().height;
   }
+  return total;
+}
 
+function scrollInstPanelIntoView() {
+  var passes = 0;
   function place() {
     var panel = document.getElementById('instPanel');
     if (!panel) return;
     var target = panel.querySelector('.inst-topbar') || panel;
-    var delta = target.getBoundingClientRect().top - stickyOffset(panel) - 12;
+    var delta = target.getBoundingClientRect().top - stickyTopOffset(panel) - 12;
     if (Math.abs(delta) > 2) {
       window.scrollBy({ top: delta, behavior: passes === 0 ? 'smooth' : 'auto' });
     }
     passes++;
     if (passes < 4) setTimeout(place, 220);
   }
-
   requestAnimationFrame(place);
 }
 
@@ -2626,7 +2620,16 @@ function escapeText(s) {
 function backToProcMenu() {
   currentProcIndex = -1;
   document.getElementById('instPanel').classList.remove('visible');
-  document.getElementById('procMenu').style.display = 'block';
+  var menu = document.getElementById('procMenu');
+  menu.style.display = 'block';
+
+  // Collapsing a long set of instructions makes the page far shorter, so the
+  // browser clamps the scroll position and strands you at the new bottom -
+  // nowhere near the procedure list you just asked for. Put it back in view.
+  requestAnimationFrame(function() {
+    var y = menu.getBoundingClientRect().top + window.pageYOffset - stickyTopOffset(null) - 12;
+    window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+  });
 }
 
 // The header can be one line (landscape/wide screens) or wrap onto two
@@ -3365,7 +3368,7 @@ applyHelpModeUI();
 // Bump the trailing number for a same-day update, or start a new date at
 // -1 for the next day. Must match version.txt on the server exactly, or
 // every tab will think an update is available.
-var APP_VERSION = '8-3-2026-4eaa579';
+var APP_VERSION = '7-31-2026-3fcadb0';
 (function(){ var f = document.getElementById('appVersionFooter'); if (f) f.textContent = 'Updated: ' + APP_VERSION; })();
 
 function checkForAppUpdate() {
@@ -3861,8 +3864,6 @@ function saveAlarms() {
     if (journavxOn) scheduleData.journavx = { time: journavxTime, numDoses: journavxDosesForDay(currentDay), intervalMins: 720, label: 'Journavx', startDate: todayStr, durationDays: DAYS };
     if (tylenolOn) scheduleData.tylenol = { time: tylenolTime, numDoses: tylenolDosesForDay(currentDay), intervalMins: tylenolIntervalMins(), label: 'Tylenol', startDate: todayStr, durationDays: DAYS };
 
-    // Each stored schedule is owned by the device that first wrote it: the first
-    // write mints a token server-side, and later writes must present it.
     var syncTokenKey = 'postopify_sync_token:' + practiceId + ':' + pid;
     var syncToken = null;
     try { syncToken = localStorage.getItem(syncTokenKey); } catch (e) {}
