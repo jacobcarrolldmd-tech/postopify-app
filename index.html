@@ -1749,11 +1749,9 @@ function switchProfile(id) {
   reloadForActiveProfile();
   document.getElementById('profileMenu').classList.remove('open');
 }
-// Profile ids double as the server-side patientId. The previous format was
-// 'p_' + Date.now() + a 3-digit random number: roughly a thousand possibilities
-// per millisecond, and it embedded the moment the profile was created. Anyone
-// who knew roughly when a patient was set up could enumerate valid keys. This
-// uses 128 bits of cryptographic randomness and leaks no timestamp.
+// Profile ids double as the server-side patientId. The old format embedded a
+// timestamp and only ~1000 random values, so valid keys could be enumerated by
+// anyone who knew roughly when a patient was set up. 128 bits, no timestamp.
 function randomProfileId() {
   try {
     if (window.crypto && typeof crypto.randomUUID === 'function') {
@@ -1765,7 +1763,6 @@ function randomProfileId() {
       return ('0' + b.toString(16)).slice(-2);
     }).join('');
   } catch (e) {
-    // Only reached on a browser without Web Crypto; still far better than before.
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 12);
   }
 }
@@ -2286,7 +2283,15 @@ var pendingProcParam2 = null;
 
 function applyKickstartParams() {
   var params;
-  try { params = new URLSearchParams(window.location.search); } catch(e) { return; }
+  // Read from the URL fragment (after '#') first. Browsers never transmit the
+  // fragment to a server, so a Kickstart link's contents stay on the device
+  // instead of landing in web server logs, CDN logs and referrer headers.
+  // The query string is still accepted so links printed or texted before this
+  // change keep working.
+  try {
+    var kickstartHash = (window.location.hash || '').replace(/^#/, '');
+    params = new URLSearchParams(kickstartHash || window.location.search);
+  } catch(e) { return; }
   var newProfileFlag = params.get('newProfile');
   var surgDate = params.get('surgDate');
   var procName = params.get('proc');
@@ -3324,7 +3329,7 @@ applyHelpModeUI();
 // Bump the trailing number for a same-day update, or start a new date at
 // -1 for the next day. Must match version.txt on the server exactly, or
 // every tab will think an update is available.
-var APP_VERSION = '8-3-2026-f15f69e';
+var APP_VERSION = '7-31-2026-3fcadb0';
 (function(){ var f = document.getElementById('appVersionFooter'); if (f) f.textContent = 'Updated: ' + APP_VERSION; })();
 
 function checkForAppUpdate() {
@@ -3821,9 +3826,7 @@ function saveAlarms() {
     if (tylenolOn) scheduleData.tylenol = { time: tylenolTime, numDoses: tylenolDosesForDay(currentDay), intervalMins: tylenolIntervalMins(), label: 'Tylenol', startDate: todayStr, durationDays: DAYS };
 
     // Each stored schedule is owned by the device that first wrote it: the first
-    // write mints a token server-side, and later writes must present it. Without
-    // this, anyone who guessed a practice + patientId could overwrite a patient's
-    // schedule - and reminders are generated from that record.
+    // write mints a token server-side, and later writes must present it.
     var syncTokenKey = 'postopify_sync_token:' + practiceId + ':' + pid;
     var syncToken = null;
     try { syncToken = localStorage.getItem(syncTokenKey); } catch (e) {}
