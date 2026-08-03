@@ -153,6 +153,16 @@ body.help-mode .hs-card{overflow:visible;}
 .inst-panel{display:none;margin-top:14px;padding-top:0;border-top:1.5px solid var(--border);}
 .inst-panel.visible{display:block;}
 .inst-panel{scroll-margin-top:calc(var(--topbar-h, 60px) + 72px);}
+/* On narrow screens the Back/title bar is NOT sticky. Sticky positioning
+   behaves differently on mobile here - html/body carry overflow-x:hidden,
+   which makes them scroll containers, so the bar detached from the header
+   and floated down over the first lines of the document (the practice name
+   and surgeon). Letting it scroll with the content removes that whole class
+   of problem; the "Choose a different procedure" button at the foot of the
+   document still gets patients back. */
+@media (max-width: 860px){
+  .inst-topbar{position:static; top:auto;}
+}
 .inst-topbar{position:sticky;top:var(--topbar-h, 60px);z-index:20;background:white;display:flex;align-items:center;gap:10px;padding:12px 0 10px;margin-bottom:4px;border-bottom:1px solid var(--border);}
 .inst-back-top{flex-shrink:0;padding:8px 14px;border-radius:20px;background:var(--navy);color:white;border:none;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;}
 .inst-title-text{font-size:15px;font-weight:700;color:var(--navy);}
@@ -2281,9 +2291,8 @@ var pendingProcParam2 = null;
 
 function applyKickstartParams() {
   var params;
-  // Read from the URL fragment (after '#') first - browsers never transmit it
-  // to a server, so link contents stay on the device. The query string is still
-  // accepted so links issued before this change keep working.
+  // Fragment first - browsers never transmit it to a server. Query string is
+  // still accepted so links issued before this change keep working.
   try {
     var kickstartHash = (window.location.hash || '').replace(/^#/, '');
     params = new URLSearchParams(kickstartHash || window.location.search);
@@ -2468,41 +2477,36 @@ function showAlsoNeededBanner(idx2) {
 // scroll. Manual taps (normal selectProcedure() calls) are untouched -
 // this only runs on the kickstart-triggered path.
 function scrollInstPanelIntoView() {
-  // scrollIntoView({block:'start'}) aligns with the top of the VIEWPORT, but two
-  // sticky bars live there - the main topbar and this panel's Back/title bar -
-  // so the opening lines of the document (practice name, surgeon) ended up
-  // hidden underneath them.
-  //
-  // Heights are measured, not assumed: on a narrow phone the topbar wraps onto
-  // two rows and a long procedure title wraps as well. They're also measured
-  // REPEATEDLY - a single measurement can be taken before the title has wrapped
-  // or the web font has loaded, and the bar grows afterwards, leaving the text
-  // partly covered again. Each pass corrects whatever drift remains.
+  // scrollIntoView({block:'start'}) aligns with the top of the VIEWPORT, but
+  // sticky bars live there, so the opening lines of the document ended up
+  // underneath them. Measure whatever is actually sticky and stop short of it.
   var passes = 0;
+
+  function isSticky(el) {
+    try { return getComputedStyle(el).position === 'sticky'; } catch (e) { return false; }
+  }
 
   function stickyOffset(panel) {
     var total = 0;
     var topbar = document.querySelector('.topbar');
-    if (topbar) total += topbar.getBoundingClientRect().height;
+    if (topbar && isSticky(topbar)) total += topbar.getBoundingClientRect().height;
     var banner = document.getElementById('kickstartTelegramBanner');
-    if (banner && banner.offsetHeight) total += banner.getBoundingClientRect().height;
+    if (banner && banner.offsetHeight && isSticky(banner)) total += banner.getBoundingClientRect().height;
+    // Below 860px this bar is static (see CSS), so it must NOT be counted -
+    // it scrolls away with the content instead of hovering over it.
     var instBar = panel.querySelector('.inst-topbar');
-    if (instBar) total += instBar.getBoundingClientRect().height;
+    if (instBar && isSticky(instBar)) total += instBar.getBoundingClientRect().height;
     return total;
   }
 
   function place() {
     var panel = document.getElementById('instPanel');
     if (!panel) return;
-    var content = document.getElementById('instArea') || panel;
-
-    // How far the content currently sits from where it should sit.
-    var delta = content.getBoundingClientRect().top - stickyOffset(panel) - 12;
-
+    var target = panel.querySelector('.inst-topbar') || panel;
+    var delta = target.getBoundingClientRect().top - stickyOffset(panel) - 12;
     if (Math.abs(delta) > 2) {
       window.scrollBy({ top: delta, behavior: passes === 0 ? 'smooth' : 'auto' });
     }
-
     passes++;
     if (passes < 4) setTimeout(place, 220);
   }
@@ -3361,7 +3365,7 @@ applyHelpModeUI();
 // Bump the trailing number for a same-day update, or start a new date at
 // -1 for the next day. Must match version.txt on the server exactly, or
 // every tab will think an update is available.
-var APP_VERSION = '8-3-2026-d6d8fc2';
+var APP_VERSION = '7-31-2026-3fcadb0';
 (function(){ var f = document.getElementById('appVersionFooter'); if (f) f.textContent = 'Updated: ' + APP_VERSION; })();
 
 function checkForAppUpdate() {
