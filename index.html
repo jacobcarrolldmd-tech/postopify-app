@@ -6,7 +6,17 @@
 <meta name="google" content="notranslate">
 <meta http-equiv="Content-Language" content="en">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<!-- Modern companion to the Apple-prefixed tag above. Chrome deprecated the
+     apple- form and warns on every load without this; both are kept because
+     older iOS still reads only the Apple one. -->
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Postopify">
+<!-- iOS Safari prefers apple-touch-icon over the manifest's icons for
+     Add to Home Screen. Without this tag iOS falls back to a screenshot of
+     the page, so a patient's home screen showed an unreadable thumbnail
+     rather than the logo. Absolute path so it resolves from any route. -->
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" href="/favicon.ico" sizes="any">
 <title>Post-Op Medication Schedule</title>
 <style>
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
