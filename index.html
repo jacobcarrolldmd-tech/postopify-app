@@ -309,6 +309,23 @@ body.help-mode .hs-card{overflow:visible;}
   .hs-header-text { flex: 1; }
   .hs-header-title { font-size: 14px; font-weight: 700; color: var(--navy); }
   .hs-header-sub { font-size: 11px; color: var(--gray); margin-top: 2px; }
+  /* One-tap install (Android/Chromium only — iOS has no install API, so
+     those users still get the written Safari steps below). Hidden by default
+     and revealed only once the browser has actually offered an install. */
+  .hs-install-wrap { padding: 12px 14px 0; }
+  .hs-install-btn {
+    width: 100%; padding: 13px 16px; border: none; border-radius: var(--radius-sm);
+    background: var(--navy); color: #fff; font-family: inherit; font-size: 15px;
+    font-weight: 700; cursor: pointer; display: flex; align-items: center;
+    justify-content: center; gap: 8px;
+  }
+  .hs-install-btn:active { opacity: .85; }
+  .hs-install-note { font-size: 11px; color: var(--gray); margin-top: 6px; text-align: center; }
+  .hs-installed {
+    margin: 12px 14px 0; padding: 10px 12px; border-radius: var(--radius-sm);
+    background: var(--green-light); color: var(--green); font-size: 13px;
+    font-weight: 600; text-align: center;
+  }
   .hs-arrow { font-size: 12px; color: var(--navy); transition: transform 0.2s; }
   .hs-arrow.open { transform: rotate(90deg); }
   .hs-body { display: none; padding: 14px 16px; }
@@ -997,6 +1014,25 @@ function continueClick() {
       </div>
       <div class="hs-arrow" id="hsArrow">&#9654;</div>
     </div>
+
+    <!-- One-tap install. Only ever shown when the browser has fired
+         beforeinstallprompt, i.e. when an install is genuinely available.
+         Never shown on iOS (no install API exists there) — those patients
+         use the written Safari steps below, which is the only path Apple
+         provides. -->
+    <div class="hs-install-wrap" id="hsInstallWrap" style="display:none;">
+      <button type="button" class="hs-install-btn" id="hsInstallBtn" onclick="doInstall()">
+        <span>&#128241;</span><span data-i18n="hsInstallBtn">Add to Home Screen</span>
+      </button>
+      <div class="hs-install-note" data-i18n="hsInstallNote">One tap — no download, no account.</div>
+    </div>
+
+    <!-- Shown instead once the app is already installed, so a patient who has
+         done this is not nagged to do it again. -->
+    <div class="hs-installed" id="hsInstalled" style="display:none;" data-i18n="hsInstalled">
+      &#10003; Installed — open Postopify from your home screen.
+    </div>
+
     <div class="hs-body" id="hsBody">
       <div class="hs-cols">
         <div class="hs-col">
@@ -1278,6 +1314,9 @@ var LANG = {
     medlineSub: "Free trusted resource from the U.S. National Library of Medicine. Look up your medications, side effects, and more.",
     hsTitle: "Save to Your Home Screen",
     hsSub: "Access this app like a regular app icon",
+    hsInstallBtn: "Add to Home Screen",
+    hsInstallNote: "One tap \u2014 no download, no account.",
+    hsInstalled: "\u2713 Installed \u2014 open Postopify from your home screen.",
     hsIphoneHeader: "\uF8FF iPhone (Safari)",
     hsIphoneStep1: 'Open in <strong>Safari</strong>',
     hsIphoneStep2: 'Tap <strong>Share</strong> \u2197 at the bottom',
@@ -1515,6 +1554,9 @@ var LANG = {
     medlineSub: "Recurso gratuito y confiable de la Biblioteca Nacional de Medicina de EE. UU. Consulte sus medicamentos, efectos secundarios y m\u00E1s.",
     hsTitle: "Guardar en su Pantalla de Inicio",
     hsSub: "Acceda a esta aplicaci\u00F3n como un \u00EDcono de aplicaci\u00F3n normal",
+    hsInstallBtn: "Agregar a Pantalla de Inicio",
+    hsInstallNote: "Un toque \u2014 sin descargas, sin cuenta.",
+    hsInstalled: "\u2713 Instalada \u2014 abra Postopify desde su pantalla de inicio.",
     hsIphoneHeader: "\uF8FF iPhone (Safari)",
     hsIphoneStep1: 'Abra en <strong>Safari</strong>',
     hsIphoneStep2: 'Toque <strong>Compartir</strong> \u2197 en la parte inferior',
@@ -3378,7 +3420,7 @@ applyHelpModeUI();
 // Bump the trailing number for a same-day update, or start a new date at
 // -1 for the next day. Must match version.txt on the server exactly, or
 // every tab will think an update is available.
-var APP_VERSION = '8-17-2026-170ac77';
+var APP_VERSION = '8-3-2026-e9c680a';
 (function(){ var f = document.getElementById('appVersionFooter'); if (f) f.textContent = 'Updated: ' + APP_VERSION; })();
 
 function checkForAppUpdate() {
@@ -3457,8 +3499,99 @@ function getNotifDeniedMessage() {
   if (isAndroid()) return t('notifDeniedAndroid');
   return t('notifDeniedGeneric');
 }
+// True when the app is running as an installed app rather than a browser tab.
+//
+// This previously checked ONLY navigator.standalone, which is an
+// iOS-Safari-only property. On Android an installed PWA leaves it undefined,
+// so an Android patient who HAD installed the app still read as "not
+// installed". The display-mode media query is the cross-platform check and
+// covers Android, desktop Chrome, and modern iOS; navigator.standalone is
+// kept for older iOS versions that predate it.
 function isStandalone() {
-  return window.navigator.standalone === true;
+  if (window.navigator.standalone === true) return true;
+  return !!(window.matchMedia && (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.matchMedia('(display-mode: fullscreen)').matches ||
+    window.matchMedia('(display-mode: minimal-ui)').matches
+  ));
+}
+
+// ---- One-tap install (Android / Chromium) --------------------------------
+//
+// WHY THIS EXISTS: without it, whether a patient ever installs the app is left
+// entirely to Chrome's own banner — which appears on Chrome's schedule, is
+// easy to dismiss, and does not reliably come back. For a product whose whole
+// premise is the app living on the patient's home screen for a week of doses,
+// that is too important to leave to chance. Capturing the event lets the
+// patient install at the moment they are actually looking at the
+// "Save to Your Home Screen" card.
+//
+// iOS is deliberately not handled here: Safari exposes no install API at all,
+// so those patients get the written Share -> Add to Home Screen steps, which
+// is the only path Apple provides.
+var deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', function (e) {
+  // Suppress Chrome's own banner so it cannot appear mid-task (e.g. while the
+  // patient is setting dose times) and steal attention at a bad moment.
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  updateInstallUI();
+});
+
+window.addEventListener('appinstalled', function () {
+  deferredInstallPrompt = null;
+  updateInstallUI();
+});
+
+function updateInstallUI() {
+  var wrap = document.getElementById('hsInstallWrap');
+  var done = document.getElementById('hsInstalled');
+  if (!wrap || !done) return;
+
+  if (isStandalone()) {
+    // Already installed and running from the home screen — say so instead of
+    // asking again.
+    wrap.style.display = 'none';
+    done.style.display = 'block';
+    return;
+  }
+
+  done.style.display = 'none';
+  // Only offer the button when the browser has genuinely offered an install.
+  // Showing a button that cannot work is worse than showing nothing.
+  wrap.style.display = deferredInstallPrompt ? 'block' : 'none';
+}
+
+function doInstall() {
+  if (!deferredInstallPrompt) return;
+  var btn = document.getElementById('hsInstallBtn');
+  if (btn) btn.disabled = true;
+
+  deferredInstallPrompt.prompt();
+
+  deferredInstallPrompt.userChoice
+    .then(function () {
+      // The event is single-use either way. If the patient declined, Chrome
+      // will fire beforeinstallprompt again on a later visit, so the button
+      // comes back on its own rather than being gone for good.
+      deferredInstallPrompt = null;
+      if (btn) btn.disabled = false;
+      updateInstallUI();
+    })
+    .catch(function () {
+      deferredInstallPrompt = null;
+      if (btn) btn.disabled = false;
+      updateInstallUI();
+    });
+}
+
+// Run once at load so an already-installed patient sees the installed state
+// even before any event fires.
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', updateInstallUI);
+} else {
+  updateInstallUI();
 }
 function updateNotifUI() {
   var status   = document.getElementById('notifStatus');
