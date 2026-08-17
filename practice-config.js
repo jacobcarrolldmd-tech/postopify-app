@@ -101,30 +101,42 @@ async function initPractice() {
 // Auto-run on load
 initPractice();
 // ---- 6. Build and inject a dynamic per-practice manifest ----
+//
+// URLS MUST BE ABSOLUTE. The manifest is injected as a blob: URL, and
+// relative URLs in a manifest resolve against the manifest's own location —
+// which is impossible for a blob:. Previously start_url and every icon src
+// were relative, so the browser discarded all of them ("property 'start_url'
+// ignored, URL is invalid"), leaving Add-to-Home-Screen with no launch URL
+// and no icon. Building them from location.origin fixes it without giving up
+// the per-practice manifest.
 function applyDynamicManifest(config) {
   const practiceId = config.practice_id.toLowerCase();
+  const origin = window.location.origin;
+
+  // Prefer the practice's own logo (a real absolute URL from R2) when we have
+  // one. Fall back to generic icons shipped with the app, so a practice with
+  // no logo still installs with a sensible icon rather than a blank square.
+  // sizes:"any" because logo_url is an arbitrary image we cannot promise is
+  // 192 or 512 square — declaring a size we haven't verified is worse than
+  // declaring none.
+  const icons = config.logo_url
+    ? [{ src: config.logo_url, sizes: "any", type: "image/png" }]
+    : [
+        { src: `${origin}/icon-192.png`, sizes: "192x192", type: "image/png" },
+        { src: `${origin}/icon-512.png`, sizes: "512x512", type: "image/png" },
+      ];
 
   const manifest = {
     name: config.clinic_name,
     short_name: config.clinic_name.length > 20
       ? config.clinic_name.substring(0, 20)
       : config.clinic_name,
-    start_url: "/?practice=" + practiceId,
+    start_url: `${origin}/?practice=${encodeURIComponent(practiceId)}`,
+    scope: `${origin}/`,
     display: "standalone",
     background_color: "#ffffff",
     theme_color: config.primary_color || "#1D9E75",
-    icons: [
-      {
-        src: `icon-192-${practiceId}.png`,
-        sizes: "192x192",
-        type: "image/png"
-      },
-      {
-        src: `icon-512-${practiceId}.png`,
-        sizes: "512x512",
-        type: "image/png"
-      }
-    ]
+    icons: icons,
   };
 
   const blob = new Blob([JSON.stringify(manifest)], { type: "application/json" });
